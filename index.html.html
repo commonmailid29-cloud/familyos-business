@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+
+<html><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>FamilyOS Business Professional — Staff, Salary, Tasks, Daily Monitoring</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#F8F7FF;color:#111827;font-family:Inter,sans-serif}
+.profile-menu{position:relative;margin-left:auto}.profile-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dropdown{position:absolute;right:0;top:46px;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:14px;padding:8px;width:320px;box-shadow:0 12px 32px rgba(0,0,0,0.12);display:none;z-index:40}.dropdown.show{display:block}
+.dropdown-item{padding:10px 12px;border-radius:10px;font-size:13px;cursor:pointer;display:flex;gap:10px;align-items:center}.dropdown-item:hover{background:#F5F3FF}
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#F5F5FF}
+.card-auth{background:#fff;border:1px solid rgba(0,0,0,0.06);border-radius:20px;padding:28px;width:100%;max-width:500px}
+.input{width:100%;padding:11px 13px;background:#F5F5FF;border:1px solid rgba(0,0,0,0.08);border-radius:12px;margin-top:8px;outline:none;font-size:13px}
+.btn-primary{width:100%;padding:11px;background:linear-gradient(135deg,#7C3AED,#5B21B6);border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;margin-top:10px}
+.btn-google{width:100%;padding:11px;background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:12px;font-weight:600;cursor:pointer;display:flex;gap:8px;justify-content:center;margin-top:10px}
+.card{background:#fff;border:1px solid #EFEAFD;border-radius:20px;padding:18px;margin-top:14px;box-shadow:0 2px 12px rgba(0,0,0,0.02)}
+.dur-btn{padding:8px 14px;border-radius:20px;border:1px solid rgba(0,0,0,0.08);background:#fff;cursor:pointer;font-size:12px;font-weight:600}.dur-btn.active{background:#111827;color:#fff}
+.tab-row{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:4px}.tab{padding:8px 14px;border-radius:20px;border:1px solid rgba(0,0,0,0.08);background:#fff;white-space:nowrap;cursor:pointer;font-size:12px;font-weight:600}.tab.active{background:#7C3AED;color:#fff;border-color:#7C3AED}
+.list{display:flex;flex-direction:column;gap:10px;margin-top:12px}.item{padding:14px;border-radius:14px;background:#F9FAFB;border:1px solid rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;transition:0.2s}.item:hover{background:#F5F3FF}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:flex-end;justify-content:center;z-index:50}.modal.show{display:flex}.modal-box{background:#fff;border-radius:22px 22px 0 0;padding:20px;width:100%;max-width:720px;max-height:94vh;overflow-y:auto}
+.notify-bar{background:linear-gradient(135deg,#FEF3C7,#FDE68A);border:1px solid #FCD34D;border-radius:14px;padding:12px 14px;margin-top:14px;display:flex;gap:10px;align-items:center;font-size:13px;font-weight:600}
+.badge{padding:4px 8px;border-radius:10px;font-size:10px;font-weight:800;color:#fff}.badge-red{background:#EF4444}.badge-yellow{background:#F59E0B}.badge-green{background:#10B981}.badge-purple{background:#7C3AED}
+.thumb{width:60px;height:60px;border-radius:10px;object-fit:cover;border:1px solid #ddd;margin-top:8px}
+.action-btn{padding:6px 10px;border-radius:8px;border:1px solid #E9E8F5;background:#fff;cursor:pointer;font-size:12px;margin-left:6px}.action-btn.delete{color:#EF4444;border-color:#FECACA}.action-btn.edit{color:#5B3DF6;border-color:#DDD6FF}
+.admin-topbar{background:#fff;border-bottom:1px solid #E9E8F5;padding:14px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:20}
+.admin-logo{width:42px;height:42px;background:linear-gradient(135deg,#5B3DF6,#3E2AD1);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px}
+.admin-badge{background:#EDE9FF;color:#5B3DF6;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.live-badge{background:#fff;border:1px solid #E9E8F5;padding:8px 14px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px}
+.live-dot{width:8px;height:8px;background:#10B981;border-radius:50%}
+.sa-avatar{width:36px;height:36px;background:#F3F0FF;border:1px solid #E9E8F5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#5B3DF6}
+.admin-content{max-width:1400px;margin:0 auto;padding:18px 20px 100px}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:4px}@media(max-width:1300px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:450px){.kpi-grid{grid-template-columns:1fr}}
+.kpi-card{background:#fff;border:1px solid #EFEAFD;border-radius:20px;padding:18px 18px 16px;position:relative;overflow:hidden;transition:0.2s;cursor:pointer}.kpi-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(91,61,246,0.12);border-color:#C4B5FD}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start}
+.kpi-icon{width:38px;height:38px;background:#F5F3FF;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#5B3DF6}
+.kpi-growth{background:#ECFDF5;color:#065F46;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid #A7F3D0}
+.kpi-label{font-size:11px;font-weight:700;color:#8B8BA7;letter-spacing:0.6px;margin-top:18px;text-transform:uppercase}
+.kpi-value{font-size:28px;font-weight:900;color:#111;margin-top:4px}
+.kpi-sub{font-size:12px;color:#8B8BA7;margin-top:4px}
+.chart-row{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px}@media(max-width:900px){.chart-row{grid-template-columns:1fr}}
+.chart-card{background:#fff;border:1px solid #EFEAFD;border-radius:20px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,0.02)}
+.chart-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}.chart-sub{font-size:12px;color:#8B8BA7;margin-top:4px}
+.growth-badge{background:#EEF2FF;color:#4338CA;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.bar-chart{display:flex;align-items:flex-end;gap:12px;height:170px;margin-top:28px;padding:0 10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:10px}
+.bar{width:100%;background:#EDE9FF;border-radius:12px 12px 6px 6px;min-height:20px}.bar.active{background:linear-gradient(180deg,#5B3DF6,#4338CA);box-shadow:0 8px 20px rgba(91,61,246,0.3)}
+.bar-label{font-size:12px;font-weight:600;color:#6B6B8A}.bar-val{font-size:11px;color:#9CA3AF}
+.donut-wrap{display:flex;gap:20px;align-items:center;margin-top:18px}@media(max-width:600px){.donut-wrap{flex-direction:column}}
+.donut{width:150px;height:150px;border-radius:50%;background:conic-gradient(#EDE9FF 0% 100%);position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.06)}
+.donut-center{width:70px;height:70px;background:#fff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.city-list{flex:1}.city-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F5F3FF;font-size:13px}
+.city-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:8px}
+.city-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.city-stat-card{background:#F8F7FF;border-radius:12px;padding:12px}
+#userApp{background:#F8F7FF;min-height:100vh;display:none}
+#adminApp{background:#F8F7FF;min-height:100vh;display:none}
+.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}@media(max-width:900px){.panel-grid{grid-template-columns:1fr}}
+.group-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}@media(max-width:900px){.group-kpi-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:500px){.group-kpi-grid{grid-template-columns:1fr}}
+.group-kpi-card{background:#F9FAFB;border:1px solid #EFEAFD;border-radius:14px;padding:12px;cursor:pointer;transition:0.2s}.group-kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.06);background:#fff;border-color:#C4B5FD}
+.group-kpi-label{font-size:10px;font-weight:700;color:#8B8BA7;text-transform:uppercase;letter-spacing:0.5px}.group-kpi-value{font-size:18px;font-weight:800;margin-top:4px}.group-kpi-sub{font-size:11px;color:#6B7280;margin-top:2px}
+.compulsory{color:#EF4444;font-weight:800}
+.optional-label{font-size:10px;color:#10B981;background:#ECFDF5;padding:2px 6px;border-radius:8px;margin-left:6px}
+.section-box{background:#F8F7FF;border:1px solid #EFEAFD;border-radius:14px;padding:12px;margin-top:10px}.section-title{font-size:12px;font-weight:800;color:#5B3DF6;display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:600px){.grid-2{grid-template-columns:1fr}}
+</style></head><body>
+<div id="auth"><div class="card-auth"><h2>FamilyOS — Business Professional</h2><p style="font-size:12px;color:#6B7280;margin-top:4px">Family Expense &amp; Asset Management — familyos-e01e5</p>
+<input class="input" id="email" placeholder="Email (kamleshsoud@gmail.com for Admin)"/>
+<input class="input" id="password" onkeypress="if(event.key==='Enter') handleLogin()" placeholder="Password" type="password"/>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+<a href="#" onclick="toggleForgotBox(); return false;" style="font-size:12px;color:#5B3DF6;font-weight:600">Forgot / Reset Password?</a>
+<span style="font-size:10px;color:#6B7280">Press Enter to login</span>
+</div>
+<button class="btn-primary" id="loginBtn" onclick="handleLogin()">Login</button>
+<button class="btn-google" id="googleBtn" onclick="handleGoogle()">🔵 Continue with Google</button>
+<div id="forgotBox" style="display:none;margin-top:12px;padding:12px;background:#F8F7FF;border:1px solid #EDE9FF;border-radius:14px">
+<div style="font-size:13px;font-weight:800;color:#5B3DF6">🔑 Forgot / Reset Password</div>
+<div style="font-size:11px;color:#6B7280;margin-top:4px">Enter your email, we will send reset link (valid 1 hour). Check inbox &amp; spam.</div>
+<input class="input" id="forgotEmail" placeholder="Enter your email for reset link" style="margin-top:8px"/>
+<button class="btn-primary" id="forgotBtn" onclick="handleForgotPassword()" style="margin-top:8px;background:linear-gradient(135deg,#10B981,#059669)">Send Reset Link</button>
+<div id="forgotMsg" style="font-size:11px;margin-top:8px;color:#6B7280"></div>
+<button class="btn-google" onclick="toggleForgotBox()" style="margin-top:6px;padding:6px;font-size:12px">Cancel</button>
+</div>
+<div id="signupBox" style="display:none;margin-top:12px;padding:12px;background:#F5F5FF;border:1px dashed #DDD6FF;border-radius:14px">
+<div style="font-size:13px;font-weight:800">Create New Account</div>
+<input class="input" id="sname" placeholder="Full Name"/><input class="input" id="semail" placeholder="Email"/><input class="input" id="spass" placeholder="Password (min 6 chars)" type="password"/><button class="btn-primary" onclick="handleSignup()">Sign Up</button>
+<div style="font-size:10px;color:#6B7280;margin-top:6px">Password must be min 6 characters. Firebase will encrypt it.</div>
+</div>
+<button class="btn-google" onclick="toggleSignup()" style="margin-top:8px">Create Account</button>
+<div id="authMsg" style="font-size:12px;margin-top:10px;display:none"></div></div></div>
+<div id="userApp">
+<div class="admin-topbar"><div class="admin-logo" style="background:linear-gradient(135deg,#7C3AED,#5B21B6)">🏠</div><div><div style="display:flex;align-items:center;gap:8px"><b style="font-size:16px">FamilyOS User</b><span class="admin-badge" style="background:#F5F3FF;color:#7C3AED">Family Dashboard</span></div><div style="font-size:12px;color:#8B8BA7;margin-top:2px">Manage your family expenses, assets &amp; investments</div></div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:10px"><div class="live-badge"><span class="live-dot"></span> Live</div><div class="sa-avatar" id="uAvatar" style="color:#7C3AED;background:#F5F3FF">U</div>
+<div class="profile-menu"><button class="profile-btn" id="uProfileBtn" onclick="toggleDD('uDropdown')" style="background:#F5F3FF;color:#7C3AED;border:1px solid #EDE9FF">U</button><div class="dropdown" id="uDropdown"><div style="padding:10px 12px"><b id="uDdName">User</b><div id="uDdEmail" style="font-size:11px;color:#6B7280"></div></div><div class="dropdown-item" onclick="exportExcel()">📥 Export</div><div class="dropdown-item" onclick="handleLogout()">🚪 Logout</div></div></div>
+</div></div>
+<div class="admin-content">
+<div id="uNotifyBar" style="display:none"></div>
+
+<div class="kpi-grid">
+<div class="kpi-card active" onclick="scrollToPanel('duePanel')"><div class="kpi-top"><div class="kpi-icon">🔔</div><div class="kpi-growth" style="background:#FEF3C7;color:#92400E;border-color:#FCD34D">Due • Upside</div></div><div class="kpi-label">DUE IN 10 DAYS ↘ Upside</div><div class="kpi-value" id="uKpiTotalDue">0</div><div class="kpi-sub" id="uKpiDueSub">Upside • Click</div></div>
+<div class="kpi-card" onclick="scrollToPanel('officePanel')"><div class="kpi-top"><div class="kpi-icon">💰</div><div class="kpi-growth" id="uKpiExpGrowth">Live</div></div><div class="kpi-label">TOTAL BUSINESS EXPENSES ↘</div><div class="kpi-value" id="uKpiTotalExp">₹0</div><div class="kpi-sub" id="uKpiExpSub">All heads • Click</div></div>
+<div class="kpi-card" onclick="scrollToPanel('staffPanel')"><div class="kpi-top"><div class="kpi-icon">👥</div><div class="kpi-growth">Live</div></div><div class="kpi-label">TOTAL STAFF ↘</div><div class="kpi-value" id="uKpiTotalStaff">0</div><div class="kpi-sub">Active staff • Click</div></div>
+<div class="kpi-card" onclick="scrollToPanel('salaryPanel')"><div class="kpi-top"><div class="kpi-icon">💵</div><div class="kpi-growth" id="uKpiSalaryGrowth">Live</div></div><div class="kpi-label">MONTHLY SALARY PAYOUT ↘</div><div class="kpi-value" id="uKpiTotalSalary">₹0</div><div class="kpi-sub">This month • Click</div></div>
+<div class="kpi-card" onclick="scrollToPanel('taskPanel')"><div class="kpi-top"><div class="kpi-icon">📋</div><div class="kpi-growth" style="background:#FEF2F2;color:#991B1B">Pending</div></div><div class="kpi-label">PENDING TASKS ↘</div><div class="kpi-value" id="uKpiPendingTasks">0</div><div class="kpi-sub">Today pending • Click</div></div>
+<div class="kpi-card" onclick="scrollToPanel('attendancePanel')"><div class="kpi-top"><div class="kpi-icon">🕒</div><div class="kpi-growth" style="background:#ECFDF5;color:#065F46">Today</div></div><div class="kpi-label">PRESENT TODAY ↘</div><div class="kpi-value" id="uKpiPresentToday">0</div><div class="kpi-sub">Attendance • Click</div></div>
+</div>
+
+
+<div class="chart-row">
+<div class="chart-card"><div style="display:flex;justify-content:space-between"><div><div class="chart-title">📈 Expenses growth • last 6 months</div><div class="chart-sub" id="uChartSub">Live</div></div><div class="growth-badge" id="uGrowthBadge">Live</div></div><div class="bar-chart" id="uBarChart"></div><div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid #F5F3FF;font-size:11px;color:#8B8BA7"><span id="uBarTotalText">Last 6 months • Live</span><span>Your expenses</span></div></div>
+<div class="chart-card" style="border:2px solid #C4B5FD"><div style="display:flex;justify-content:space-between"><div><div class="chart-title">📊 Business Expense Distribution • Head Wise • Live</div><div class="chart-sub">Built with conic-gradient • Live from your data</div></div><div class="growth-badge" id="invChartBadge">Live • Head Wise</div></div><div class="donut-wrap"><div class="donut" id="uDonutChart"><div class="donut-center"><div style="font-size:10px;color:#8B8BA7;font-weight:700">TOTAL</div><div id="uDonutTotal" style="font-size:18px;font-weight:900">₹0</div></div></div><div class="city-list" id="uCityList"></div></div><div class="city-stats" id="uCityStats"></div></div>
+</div>
+<div class="panel-grid" style="margin-top:16px">
+<div class="chart-card" id="duePanel" style="border:2px solid #FCD34D"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">📅 Auto Due Calendar Panel • UPSIDE</div><div class="chart-sub">Auto Fetch • Same logic</div></div><span style="background:#FEF3C7;color:#92400E;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid #FCD34D">⬆️ UPSIDE</span></div>
+<div class="tab-row" style="margin-top:12px"><button class="tab active" onclick="setDueFilter('all')">All Due</button><button class="tab" onclick="setDueFilter('10days')">Next 10 Days 🔔</button><button class="tab" onclick="setDueFilter('overdue')">Overdue 🔴</button><button class="tab" onclick="setDueFilter('warranty')">Warranty</button><button class="tab" onclick="setDueFilter('insurance')">Insurance</button><button class="tab" onclick="setDueFilter('investment')">Investments</button></div><div class="list" id="dueList"></div></div>
+
+</div>
+
+<div class="chart-card" id="officePanel" style="margin-top:16px;border:2px solid #10B981"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">🏢 Manage Office Expenses — Deposit, Rent, Salary, Maintenance, Water, Other</div><div class="chart-sub">Office daily expenses — Monthly review + Yearly total — Same as V8.18, no old code changes</div></div><button class="tab active" onclick="openOfficeModal()" style="background:#10B981;border-color:#10B981">+ Add Office Expense</button></div>
+<!-- Monthly Review Summary -->
+<div id="officeMonthlyKPI" style="margin-top:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+<div class="kpi-card" style="padding:12px"><div class="kpi-label">THIS MONTH</div><div class="kpi-value" id="offKpiThisMonth" style="font-size:20px">₹0</div><div class="kpi-sub" id="offKpiThisMonthCount">0 entries</div></div>
+<div class="kpi-card" style="padding:12px"><div class="kpi-label">LAST MONTH</div><div class="kpi-value" id="offKpiLastMonth" style="font-size:20px">₹0</div><div class="kpi-sub" id="offKpiLastMonthCount">0 entries</div></div>
+<div class="kpi-card" style="padding:12px"><div class="kpi-label">THIS YEAR</div><div class="kpi-value" id="offKpiThisYear" style="font-size:20px">₹0</div><div class="kpi-sub" id="offKpiThisYearCount">0 entries</div></div>
+<div class="kpi-card" style="padding:12px"><div class="kpi-label">TOTAL OFFICE</div><div class="kpi-value" id="offKpiTotal" style="font-size:20px">₹0</div><div class="kpi-sub" id="offKpiTotalCount">0 entries</div></div>
+</div>
+<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<label style="font-size:11px;font-weight:700">📅 Monthly Review:</label>
+<select class="input" id="offMonthFilter" onchange="renderOffice()" style="width:140px">
+<option value="all">All Months</option>
+<option value="thisMonth">This Month</option>
+<option value="lastMonth">Last Month</option>
+<option value="thisYear">This Year</option>
+</select>
+<select class="input" id="offYearFilter" onchange="renderOffice()" style="width:120px">
+<option value="all">All Years</option>
+</select>
+<button class="tab" onclick="exportOfficeExcel()">📥 Export Office Excel</button>
+</div>
+<div class="tab-row" id="officeTabs" style="margin-top:10px">
+<button class="tab active" data-off="all" onclick="filterOffice('all')">All Office (0)</button>
+<button class="tab" data-off="Deposit" onclick="filterOffice('Deposit')">Deposit</button>
+<button class="tab" data-off="Rent" onclick="filterOffice('Rent')">Rent</button>
+<button class="tab" data-off="Salary" onclick="filterOffice('Salary')">Salary</button>
+<button class="tab" data-off="Maintenance" onclick="filterOffice('Maintenance')">Maintenance</button>
+<button class="tab" data-off="Water Exp" onclick="filterOffice('Water Exp')">Water</button>
+<button class="tab" data-off="Other" onclick="filterOffice('Other')">Other</button>
+</div>
+<!-- Monthly breakdown table -->
+<div id="officeMonthlyBreakdown" style="margin-top:12px;background:#F8F7FF;border:1px solid #EDE9FF;border-radius:12px;padding:12px">
+<div style="font-size:13px;font-weight:800">📊 Monthly Breakdown — Review</div>
+<div id="officeMonthlyTable" style="margin-top:8px"></div>
+</div>
+<div class="list" id="officeList" style="margin-top:10px"></div>
+<div style="margin-top:8px;font-size:11px;color:#6B7280">💡 New: Monthly review + Form auto-clears after save — Old data will NOT show again when entering new entry — No login issue — Old V8.18 code untouched</div>
+</div>
+<!-- === PROFESSIONAL BUSINESS CLASS PANELS — NEW === -->
+<div class="chart-card" id="staffPanel" style="margin-top:16px;border:2px solid #0EA5E9"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">👥 Staff Management — Professional Business</div><div class="chart-sub">Maintain staff, role, contact, salary structure, joining date, status — Business class</div></div><button class="tab active" onclick="openStaffModal()" style="background:#0EA5E9;border-color:#0EA5E9">+ Add Staff</button></div>
+<div class="tab-row" id="staffTabs" style="margin-top:10px">
+<button class="tab active" data-staff="all" onclick="filterStaff('all')">All Staff (0)</button>
+<button class="tab" data-staff="active" onclick="filterStaff('active')">Active</button>
+<button class="tab" data-staff="inactive" onclick="filterStaff('inactive')">Inactive</button>
+<button class="tab" data-staff="Manager" onclick="filterStaff('Manager')">Manager</button>
+<button class="tab" data-staff="Field Staff" onclick="filterStaff('Field Staff')">Field Staff</button>
+<button class="tab" data-staff="Office Staff" onclick="filterStaff('Office Staff')">Office Staff</button>
+</div>
+<div class="list" id="staffList" style="margin-top:10px"></div>
+<div id="staffKPI" style="margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">TOTAL STAFF</div><div class="kpi-value" id="staffKpiTotal" style="font-size:18px">0</div><div class="kpi-sub">Active staff</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">MONTHLY SALARY</div><div class="kpi-value" id="staffKpiSalary" style="font-size:18px">₹0</div><div class="kpi-sub">Total payout</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">ACTIVE TASKS</div><div class="kpi-value" id="staffKpiTasks" style="font-size:18px">0</div><div class="kpi-sub">Pending</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">TODAY CONVEYANCE</div><div class="kpi-value" id="staffKpiConv" style="font-size:18px">₹0</div><div class="kpi-sub">Staff travel</div></div>
+</div>
+</div>
+<div class="chart-card" id="salaryPanel" style="margin-top:16px;border:2px solid #7C3AED"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">💰 Salary Management — Rent, Conveyance, Advance, Deductions</div><div class="chart-sub">Monthly salary, rent share, conveyance to staff, advance, deductions — Auto calculates net payable</div></div><button class="tab active" onclick="openSalaryModal()" style="background:#7C3AED;border-color:#7C3AED">+ Add Salary / Conveyance</button></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+<select class="input" id="salaryMonthFilter" onchange="renderSalary()" style="width:140px"><option value="all">All Months</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option></select>
+<select class="input" id="salaryStaffFilter" onchange="renderSalary()" style="width:160px"><option value="all">All Staff</option></select>
+<button class="tab" onclick="exportSalaryExcel()">📥 Export Salary</button>
+</div>
+<div class="tab-row" id="salaryTabs" style="margin-top:10px">
+<button class="tab active" data-sal="all" onclick="filterSalary('all')">All (0)</button>
+<button class="tab" data-sal="Salary" onclick="filterSalary('Salary')">Salary</button>
+<button class="tab" data-sal="Conveyance" onclick="filterSalary('Conveyance')">Conveyance</button>
+<button class="tab" data-sal="Advance" onclick="filterSalary('Advance')">Advance</button>
+<button class="tab" data-sal="Rent" onclick="filterSalary('Rent')">Rent Share</button>
+</div>
+<div class="list" id="salaryList" style="margin-top:10px"></div>
+<div id="salaryMonthlySummary" style="margin-top:10px;background:#F5F3FF;border:1px solid #EDE9FF;border-radius:12px;padding:12px">
+<div style="font-size:13px;font-weight:800">📊 Monthly Salary Summary</div>
+<div id="salaryMonthlyTable" style="margin-top:8px"></div>
+</div>
+</div>
+<div class="chart-card" id="attendancePanel" style="margin-top:16px;border:2px solid #2563EB"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">🕒 Attendance Management — Daily Check-In/Out</div><div class="chart-sub">Mark daily present, absent, half-day, late — Auto monthly summary — Business attendance tracker</div></div><button class="tab active" onclick="openAttendanceModal()" style="background:#2563EB;border-color:#2563EB">+ Mark Attendance</button></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+<select class="input" id="attMonthFilter" onchange="renderAttendance()" style="width:140px"><option value="all">All Months</option><option value="thisMonth">This Month</option><option value="lastMonth">Last Month</option></select>
+<select class="input" id="attStaffFilter" onchange="renderAttendance()" style="width:160px"><option value="all">All Staff</option></select>
+<select class="input" id="attStatusFilter" onchange="renderAttendance()" style="width:130px"><option value="all">All Status</option><option value="Present">Present</option><option value="Absent">Absent</option><option value="Half Day">Half Day</option><option value="Leave">Leave</option></select>
+<input class="input" id="attDateFilter" onchange="renderAttendance()" style="width:150px" type="date"/>
+<button class="tab" onclick="exportAttendanceExcel()">📥 Export Attendance</button>
+</div>
+<div class="tab-row" id="attTabs" style="margin-top:10px">
+<button class="tab active" data-att="all" onclick="filterAttendance('all')">All (0)</button>
+<button class="tab" data-att="Present" onclick="filterAttendance('Present')">Present</button>
+<button class="tab" data-att="Absent" onclick="filterAttendance('Absent')">Absent</button>
+<button class="tab" data-att="Half Day" onclick="filterAttendance('Half Day')">Half Day</button>
+<button class="tab" data-att="Today" onclick="filterAttendance('Today')">Today</button>
+</div>
+<div id="attKPI" style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">PRESENT TODAY</div><div class="kpi-value" id="attKpiPresent" style="font-size:18px;color:#059669">0</div><div class="kpi-sub">Today</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">ABSENT TODAY</div><div class="kpi-value" id="attKpiAbsent" style="font-size:18px;color:#EF4444">0</div><div class="kpi-sub">Today</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">THIS MONTH PRESENT</div><div class="kpi-value" id="attKpiMonthPresent" style="font-size:18px">0</div><div class="kpi-sub">Monthly</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">HALF DAYS</div><div class="kpi-value" id="attKpiHalf" style="font-size:18px;color:#D97706">0</div><div class="kpi-sub">This month</div></div>
+</div>
+<div class="list" id="attList" style="margin-top:10px"></div>
+<div id="attMonthlySummary" style="margin-top:10px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;padding:12px">
+<div style="font-size:13px;font-weight:800">📊 Monthly Attendance Summary — Staff Wise</div>
+<div id="attMonthlyTable" style="margin-top:8px"></div>
+</div>
+</div>
+<div class="chart-card" id="leavePanel" style="margin-top:16px;border:2px solid #F59E0B"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">🌴 Leave Management — Apply &amp; Approve</div><div class="chart-sub">Staff leave applications, sick leave, casual, paid, unpaid — Approve/reject — Auto balance tracking</div></div><button class="tab active" onclick="openLeaveModal()" style="background:#F59E0B;border-color:#F59E0B">+ Apply Leave</button></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+<select class="input" id="leaveMonthFilter" onchange="renderLeaves()" style="width:140px"><option value="all">All Months</option><option value="thisMonth">This Month</option><option value="pending">Pending Only</option></select>
+<select class="input" id="leaveStaffFilter" onchange="renderLeaves()" style="width:160px"><option value="all">All Staff</option></select>
+<select class="input" id="leaveStatusFilter" onchange="renderLeaves()" style="width:130px"><option value="all">All Status</option><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select>
+<button class="tab" onclick="exportLeaveExcel()">📥 Export Leaves</button>
+</div>
+<div class="tab-row" id="leaveTabs" style="margin-top:10px">
+<button class="tab active" data-leave="all" onclick="filterLeave('all')">All Leaves (0)</button>
+<button class="tab" data-leave="Pending" onclick="filterLeave('Pending')">Pending</button>
+<button class="tab" data-leave="Approved" onclick="filterLeave('Approved')">Approved</button>
+<button class="tab" data-leave="Rejected" onclick="filterLeave('Rejected')">Rejected</button>
+<button class="tab" data-leave="Sick" onclick="filterLeave('Sick')">Sick</button>
+<button class="tab" data-leave="Casual" onclick="filterLeave('Casual')">Casual</button>
+</div>
+<div class="list" id="leaveList" style="margin-top:10px"></div>
+<div id="leaveKPI" style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">PENDING LEAVES</div><div class="kpi-value" id="leaveKpiPending" style="font-size:18px;color:#D97706">0</div><div class="kpi-sub">Awaiting approval</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">APPROVED THIS MONTH</div><div class="kpi-value" id="leaveKpiApproved" style="font-size:18px;color:#059669">0</div><div class="kpi-sub">This month</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">TOTAL LEAVE DAYS</div><div class="kpi-value" id="leaveKpiDays" style="font-size:18px">0</div><div class="kpi-sub">This month days</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">SICK LEAVES</div><div class="kpi-value" id="leaveKpiSick" style="font-size:18px;color:#EF4444">0</div><div class="kpi-sub">This month</div></div>
+</div>
+</div>
+<div class="chart-card" id="advancePanel" style="margin-top:16px;border:2px solid #DC2626"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">💳 Advance Management — Staff Advance &amp; Repayment Tracking</div><div class="chart-sub">Staff advance requests, given amount, repayment in salary, balance, EMI style — Separate from Salary panel for clarity</div></div><button class="tab active" onclick="openAdvanceModal()" style="background:#DC2626;border-color:#DC2626">+ Give Advance</button></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+<select class="input" id="advMonthFilter" onchange="renderAdvances()" style="width:140px"><option value="all">All Months</option><option value="thisMonth">This Month</option><option value="pending">Pending Repayment</option></select>
+<select class="input" id="advStaffFilter" onchange="renderAdvances()" style="width:160px"><option value="all">All Staff</option></select>
+<select class="input" id="advStatusFilter" onchange="renderAdvances()" style="width:130px"><option value="all">All Status</option><option value="Given">Given</option><option value="Partial Repaid">Partial Repaid</option><option value="Fully Repaid">Fully Repaid</option></select>
+<button class="tab" onclick="exportAdvanceExcel()">📥 Export Advances</button>
+</div>
+<div class="tab-row" id="advTabs" style="margin-top:10px">
+<button class="tab active" data-adv="all" onclick="filterAdvance('all')">All Advances (0)</button>
+<button class="tab" data-adv="Given" onclick="filterAdvance('Given')">Given</button>
+<button class="tab" data-adv="Partial Repaid" onclick="filterAdvance('Partial Repaid')">Partial</button>
+<button class="tab" data-adv="Fully Repaid" onclick="filterAdvance('Fully Repaid')">Repaid</button>
+</div>
+<div id="advKPI" style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">TOTAL ADVANCE GIVEN</div><div class="kpi-value" id="advKpiTotal" style="font-size:18px">₹0</div><div class="kpi-sub">All time</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">PENDING REPAYMENT</div><div class="kpi-value" id="advKpiPending" style="font-size:18px;color:#EF4444">₹0</div><div class="kpi-sub">To collect</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">REPAID THIS MONTH</div><div class="kpi-value" id="advKpiRepaid" style="font-size:18px;color:#059669">₹0</div><div class="kpi-sub">This month</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">THIS MONTH GIVEN</div><div class="kpi-value" id="advKpiThisMonth" style="font-size:18px">₹0</div><div class="kpi-sub">This month</div></div>
+</div>
+<div class="list" id="advList" style="margin-top:10px"></div>
+<div id="advMonthlySummary" style="margin-top:10px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:12px">
+<div style="font-size:13px;font-weight:800">📊 Advance Balance — Staff Wise Pending</div>
+<div id="advMonthlyTable" style="margin-top:8px"></div>
+</div>
+</div>
+<div class="chart-card" id="taskPanel" style="margin-top:16px;border:2px solid #059669"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="chart-title">📋 Service Task Assignment &amp; Daily Monitoring — Professional</div><div class="chart-sub">Assign work to staff, service industry tasks, daily monitoring of completion, priority, due date — Business class daily tracker</div></div><button class="tab active" onclick="openTaskModal()" style="background:#059669;border-color:#059669">+ Assign Task</button></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+<select class="input" id="taskStatusFilter" onchange="renderTasks()" style="width:130px"><option value="all">All Status</option><option value="Pending">Pending</option><option value="In Progress">In Progress</option><option value="Completed">Completed</option><option value="Overdue">Overdue</option></select>
+<select class="input" id="taskStaffFilter" onchange="renderTasks()" style="width:160px"><option value="all">All Staff</option></select>
+<select class="input" id="taskPriorityFilter" onchange="renderTasks()" style="width:130px"><option value="all">All Priority</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option></select>
+<input class="input" id="taskDateFilter" onchange="renderTasks()" style="width:150px" type="date"/>
+<button class="tab" onclick="exportTaskExcel()">📥 Export Tasks</button>
+</div>
+<div class="tab-row" id="taskTabs" style="margin-top:10px">
+<button class="tab active" data-task="all" onclick="filterTasks('all')">All Tasks (0)</button>
+<button class="tab" data-task="Pending" onclick="filterTasks('Pending')">Pending</button>
+<button class="tab" data-task="In Progress" onclick="filterTasks('In Progress')">In Progress</button>
+<button class="tab" data-task="Completed" onclick="filterTasks('Completed')">Completed</button>
+<button class="tab" data-task="Today" onclick="filterTasks('Today')">Today Due</button>
+</div>
+<div id="taskKPI" style="margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">TOTAL TASKS</div><div class="kpi-value" id="taskKpiTotal" style="font-size:18px">0</div><div class="kpi-sub">All time</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">PENDING</div><div class="kpi-value" id="taskKpiPending" style="font-size:18px;color:#D97706">0</div><div class="kpi-sub">To do</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">IN PROGRESS</div><div class="kpi-value" id="taskKpiProgress" style="font-size:18px;color:#0EA5E9">0</div><div class="kpi-sub">Working</div></div>
+<div class="kpi-card" style="padding:10px"><div class="kpi-label">COMPLETED</div><div class="kpi-value" id="taskKpiCompleted" style="font-size:18px;color:#059669">0</div><div class="kpi-sub">Done</div></div>
+</div>
+<div class="list" id="taskList" style="margin-top:10px"></div>
+<div style="margin-top:10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:12px">
+<div style="font-size:13px;font-weight:800">📈 Daily Monitoring — Staff Wise Completion</div>
+<div id="taskDailyMonitoring" style="margin-top:8px"></div>
+</div>
+</div>
+<div class="panel-grid">
+
+
+</div>
+
+</div>
+</div>
+<!-- ADMIN — LOCKED V8.6 -->
+<div id="adminApp">
+<div class="admin-topbar"><div class="admin-logo">F</div><div><div style="display:flex;align-items:center;gap:8px"><b style="font-size:16px">FamilyOS Admin</b><span class="admin-badge">UNLOCKED V8.14 • ANALYTICS ONLY • NO PERSONAL DATA FETCH</span><span class="unlock-badge">🔒 Privacy Mode • User Panel Locked</span></div><div style="font-size:12px;color:#8B8BA7;margin-top:2px">Only Login Analytics — Monthly/Quarterly/Yearly/Active/Non-Active/Last Login + City Wise Involvement — No Family/Expenses/Investments Fetch</div></div>
+<div style="margin-left:auto;display:flex;align-items:center;gap:10px"><div class="live-badge"><span class="live-dot"></span> Analytics Live</div><div class="sa-avatar" id="saAvatar">SA</div>
+<div class="profile-menu"><button class="profile-btn" onclick="toggleDD('aDropdown')" style="background:#F3F0FF;color:#5B3DF6;border:1px solid #E9E8F5">K</button><div class="dropdown" id="aDropdown"><div style="padding:10px 12px"><b>Admin Analytics</b><div id="aDdEmail" style="font-size:11px;color:#6B7280"></div><div style="margin-top:6px"><span class="unlock-badge">No personal data fetch</span></div></div><div class="dropdown-item" onclick="openDisclaimerModal()">🔒 Privacy Disclaimer</div><div class="dropdown-item" onclick="handleLogout()">🚪 Logout</div></div></div>
+</div></div>
+<div class="admin-content">
+<div class="kpi-grid" style="margin-top:14px">
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">👥</div><div class="kpi-growth">Total</div></div><div class="kpi-label">TOTAL USERS (Excl Admin)</div><div class="kpi-value" id="kpiTotalUsers">0</div><div class="kpi-sub" id="kpiTotalUsersSub">Live • No personal data</div></div>
+<div class="kpi-card active"><div class="kpi-top"><div class="kpi-icon">🟢</div><div class="kpi-growth" style="background:#ECFDF5;color:#065F46">Active</div></div><div class="kpi-label">ACTIVE TODAY</div><div class="kpi-value" id="kpiActiveToday">0</div><div class="kpi-sub">Last login today</div></div>
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📅</div><div class="kpi-growth" style="background:#EEF2FF;color:#4338CA">Monthly</div></div><div class="kpi-label">ACTIVE THIS MONTH</div><div class="kpi-value" id="kpiActiveMonth">0</div><div class="kpi-sub">Login in current month</div></div>
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📊</div><div class="kpi-growth" style="background:#FEF3C7;color:#92400E">Quarterly</div></div><div class="kpi-label">ACTIVE QUARTERLY</div><div class="kpi-value" id="kpiActiveQuarter">0</div><div class="kpi-sub">Last 90 days</div></div>
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">📈</div><div class="kpi-growth">Yearly</div></div><div class="kpi-label">ACTIVE YEARLY / NEW YEAR</div><div class="kpi-value" id="kpiActiveYear">0</div><div class="kpi-sub">This year logins</div></div>
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🔴</div><div class="kpi-growth" style="background:#FEF2F2;color:#991B1B">Non-Active</div></div><div class="kpi-label">NON ACTIVE (&gt;30 days)</div><div class="kpi-value" id="kpiNonActive">0</div><div class="kpi-sub">No login 30+ days</div></div>
+</div>
+<div class="kpi-grid" style="margin-top:12px;grid-template-columns:repeat(4,1fr)">
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🆕</div><div class="kpi-growth">New</div></div><div class="kpi-label">NEW THIS MONTH</div><div class="kpi-value" id="kpiNewMonth">0</div><div class="kpi-sub">Signups this month</div></div>
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🆕</div><div class="kpi-growth">New</div></div><div class="kpi-label">NEW THIS QUARTER</div><div class="kpi-value" id="kpiNewQuarter">0</div><div class="kpi-sub">Last 90 days signups</div></div>
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">🆕</div><div class="kpi-growth">New</div></div><div class="kpi-label">NEW THIS YEAR</div><div class="kpi-value" id="kpiNewYear">0</div><div class="kpi-sub">Signups this year</div></div>
+<div class="kpi-card"><div class="kpi-top"><div class="kpi-icon">⏰</div><div class="kpi-growth">Last</div></div><div class="kpi-label">LAST LOGIN (Latest)</div><div class="kpi-value" id="kpiLastLoginTime" style="font-size:14px">-</div><div class="kpi-sub" id="kpiLastLoginEmail">-</div></div>
+</div>
+<div class="chart-row" style="margin-top:16px">
+<div class="chart-card"><div style="display:flex;justify-content:space-between"><div><div class="chart-title">📅 Monthly Login Analytics — Last 12 Months</div><div class="chart-sub">No personal data — Only lastLogin counts — Privacy Safe</div></div><div class="growth-badge" id="monthlyGrowthBadge">Monthly</div></div><div class="bar-chart" id="barChartMonthly"></div><div style="display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid #F5F3FF;font-size:11px;color:#8B8BA7"><span id="barMonthlyTotalText">Monthly logins</span><span>Only login counts</span></div></div>
+<div class="chart-card"><div class="chart-title">📊 Quarterly &amp; Yearly — Login Analytics</div><div class="chart-sub">Quarterly last 4 + Yearly last 6 years</div><div class="bar-chart" id="barChartQuarterly" style="height:80px;margin-top:16px"></div><div style="font-size:11px;color:#6B7280;margin-top:6px;font-weight:700">Quarterly (Last 4 Quarters)</div><div class="bar-chart" id="barChartYearly" style="height:80px;margin-top:10px"></div><div style="font-size:11px;color:#6B7280;margin-top:6px;font-weight:700">Yearly (Last 6 Years)</div></div>
+</div>
+<div class="chart-row">
+<div class="chart-card"><div style="display:flex;justify-content:space-between"><div><div class="chart-title">🌍 City Wise Chart — User Involvement Tracking</div><div class="chart-sub">Tracks user involvement by city — Based on available city field in users collection — Privacy safe — No expenses/family fetched</div></div><div class="growth-badge" id="cityGrowthBadge">City Wise</div></div><div class="donut-wrap"><div class="donut" id="donutCityChart"><div class="donut-center"><div style="font-size:10px;color:#8B8BA7;font-weight:700">CITIES</div><div id="donutCityTotal" style="font-size:20px;font-weight:900">0</div></div></div><div class="city-list" id="cityList"></div></div><div class="city-stats" id="cityStats"></div><div style="margin-top:12px;background:#F8F7FF;border:1px solid #EFEAFD;border-radius:12px;padding:10px;font-size:11px;color:#6B7280"><b>How city tracking works:</b> City is read only from users/{uid} doc field <code>city</code> if present (optional). If user never entered city, shows as "Unknown / Not Shared" — No family address fetched to respect privacy. To enable city tracking for new users, add city field during signup or via profile. Admin can see involvement % per city without reading personal expenses/family. Helps you track user involvement city wise.</div></div>
+<div class="chart-card"><div class="chart-title">👥 User Login Details — Monthly / Quarterly / Yearly / Active / Last Login</div><div class="chart-sub">Only email, lastLogin, created, status — No personal data — Privacy safe</div><div class="tab-row" style="margin-top:12px"><button class="tab active" onclick="filterAdminUsers('all')">All Users</button><button class="tab" onclick="filterAdminUsers('today')">Active Today</button><button class="tab" onclick="filterAdminUsers('month')">Active This Month</button><button class="tab" onclick="filterAdminUsers('quarter')">Quarterly Active</button><button class="tab" onclick="filterAdminUsers('year')">Yearly Active</button><button class="tab" onclick="filterAdminUsers('nonactive')">Non-Active</button><button class="tab" onclick="filterAdminUsers('newmonth')">New This Month</button></div><div class="list" id="adminUsersList"></div></div>
+</div>
+<div class="card" id="adminUserDetailCard" style="display:none"><div style="display:flex;justify-content:space-between"><h3 id="adminUserDetailTitle">User Detail — Privacy Limited</h3><button class="tab" onclick="document.getElementById('adminUserDetailCard').style.display='none'">Close</button></div><div id="adminUserDetail" style="font-size:12px;color:#6B7280">Privacy Mode: No personal data fetch — Only login info allowed.</div></div>
+</div>
+</div>
+<!-- Attendance Modal -->
+<div class="modal" id="attendanceModal"><div class="modal-box"><div style="display:flex;justify-content:space-between"><h3>🕒 Mark Attendance</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px"><label style="font-size:11px;font-weight:700">Staff *</label><select class="input" id="attStaff"></select></div>
+<div class="grid-2" style="margin-top:8px"><div><label style="font-size:11px;font-weight:700">Date *</label><input class="input" id="attDate" type="date"/></div><div><label style="font-size:11px;font-weight:700">Status *</label><select class="input" id="attStatus"><option value="Present">Present</option><option value="Absent">Absent</option><option value="Half Day">Half Day</option><option value="Leave">Leave</option><option value="Late">Late</option></select></div></div>
+<div class="grid-2" style="margin-top:8px"><div><label style="font-size:11px;font-weight:700">Check-In Time</label><input class="input" id="attCheckIn" type="time"/></div><div><label style="font-size:11px;font-weight:700">Check-Out Time</label><input class="input" id="attCheckOut" type="time"/></div></div>
+<div style="margin-top:8px"><label style="font-size:11px;font-weight:700">Note</label><input class="input" id="attNote" placeholder="Late reason / note"/></div>
+<button class="btn-primary" id="attSaveBtn" onclick="saveAttendance()">Save Attendance</button>
+</div></div>
+<!-- Leave Modal -->
+<div class="modal" id="leaveModal"><div class="modal-box"><div style="display:flex;justify-content:space-between"><h3>🌴 Apply Leave</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px"><label style="font-size:11px;font-weight:700">Staff *</label><select class="input" id="leaveStaff"></select></div>
+<div class="grid-2" style="margin-top:8px"><div><label style="font-size:11px;font-weight:700">Leave Type *</label><select class="input" id="leaveType"><option value="Casual">Casual Leave</option><option value="Sick">Sick Leave</option><option value="Paid">Paid Leave</option><option value="Unpaid">Unpaid Leave</option><option value="Emergency">Emergency Leave</option><option value="Other">Other</option></select></div><div><label style="font-size:11px;font-weight:700">Status</label><select class="input" id="leaveStatus"><option value="Pending">Pending</option><option value="Approved">Approved</option><option value="Rejected">Rejected</option></select></div></div>
+<div class="grid-2" style="margin-top:8px"><div><label style="font-size:11px;font-weight:700">From Date *</label><input class="input" id="leaveFrom" type="date"/></div><div><label style="font-size:11px;font-weight:700">To Date *</label><input class="input" id="leaveTo" type="date"/></div></div>
+<div style="margin-top:8px"><label style="font-size:11px;font-weight:700">Reason *</label><textarea class="input" id="leaveReason" placeholder="Leave reason" style="height:60px"></textarea></div>
+<div style="margin-top:8px"><label style="font-size:11px;font-weight:700">Approved By</label><input class="input" id="leaveApprovedBy" placeholder="Manager name"/></div>
+<button class="btn-primary" id="leaveSaveBtn" onclick="saveLeave()">Save Leave</button>
+</div></div>
+<!-- Advance Modal -->
+<div class="modal" id="advanceModal"><div class="modal-box"><div style="display:flex;justify-content:space-between"><h3>💳 Give Staff Advance</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px"><label style="font-size:11px;font-weight:700">Staff *</label><select class="input" id="advStaff"></select></div>
+<div class="grid-2" style="margin-top:8px"><div><label style="font-size:11px;font-weight:700">Amount Given *</label><input class="input" id="advAmount" placeholder="₹ Amount" type="number"/></div><div><label style="font-size:11px;font-weight:700">Date *</label><input class="input" id="advDate" type="date"/></div></div>
+<div class="grid-2" style="margin-top:8px"><div><label style="font-size:11px;font-weight:700">Repayment Mode</label><select class="input" id="advRepayMode"><option value="Deduct from Salary">Deduct from Salary</option><option value="Cash">Cash</option><option value="EMI">EMI</option><option value="One Time">One Time</option></select></div><div><label style="font-size:11px;font-weight:700">Status</label><select class="input" id="advStatus"><option value="Given">Given</option><option value="Partial Repaid">Partial Repaid</option><option value="Fully Repaid">Fully Repaid</option></select></div></div>
+<div class="grid-2" style="margin-top:8px"><div><label style="font-size:11px;font-weight:700">Repaid Amount</label><input class="input" id="advRepaid" placeholder="Repaid so far" type="number"/></div><div><label style="font-size:11px;font-weight:700">Balance Auto</label><input class="input" id="advBalance" placeholder="Auto calculated" readonly="" type="number"/></div></div>
+<div style="margin-top:8px"><label style="font-size:11px;font-weight:700">Reason / Note</label><input class="input" id="advNote" placeholder="Advance reason"/></div>
+<button class="btn-primary" id="advSaveBtn" onclick="saveAdvance()">Save Advance</button>
+</div></div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAr04oOtPSikcDmkU3Mik8fo0s89HUfExI",appId:"1:1071158882663:web:6a3cb0877a948973d67fc2",messagingSenderId:"1071158882663",projectId:"familyos-e01e5",authDomain:"familyos-e01e5.firebaseapp.com",storageBucket:"familyos-e01e5.firebasestorage.app"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(), db=firebase.firestore(), storage=firebase.storage();
+const ADMIN_EMAILS=["kamleshsoud@gmail.com","mani11sharma@gmail.com"];
+let currentUser=null, curDur='month', invFamilyFilter='all', dueFilter='all', invChartMode='family';
+let expenses=[], family=[], investments=[], electronics=[], vehicles=[];
+
+function toggleDD(id){const el=document.getElementById(id); if(el) el.classList.toggle('show')}
+function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')); const e1=document.getElementById('expErrorMsg'); if(e1) e1.style.display='none'; const e2=document.getElementById('famErrorMsg'); if(e2) e2.style.display='none';}
+function scrollToPanel(id){const el=document.getElementById(id); if(el){el.scrollIntoView({behavior:'smooth', block:'start'}); el.style.transition='0.3s'; el.style.boxShadow='0 0 0 3px #C4B5FD'; setTimeout(()=>{el.style.boxShadow='';},1500);}}
+
+const subGroupMap={
+ Food: ["Zomato","Swiggy","Restaurant","Groceries","Other"],
+ Transport: ["Petrol","Diesel","Servicing","Insurance","Auto","Cab","Other Transport"],
+ Shopping: ["Clothes","Electronics","Pantaloon","Groceries","Other Shopping"],
+ Fees: ["School Fees","College Fees","Tuition Fees","Other Fees"],
+ Medical: ["Medicine","Doctor","Hospital","Lab Test","Other Medical"],
+ Other: ["Other","Misc"]
+};
+function updateSubGroupOptions(){const group=document.getElementById('eGroup').value; const subSel=document.getElementById('eSubGroup'); const currentVal=subSel.value; const options=subGroupMap[group]||subGroupMap.Other; let finalOptions=options; if(group==='Transport'){finalOptions=["Petrol","Diesel","Servicing","Insurance","Auto","Cab","Other"];} subSel.innerHTML=''; finalOptions.forEach(opt=>{const o=document.createElement('option'); o.value=opt; o.textContent=opt; subSel.appendChild(o);}); if(finalOptions.includes(currentVal)) subSel.value=currentVal;}
+function toggleVehicleField(){const sub=document.getElementById('eSubGroup').value; const wrap=document.getElementById('vehicleFieldWrap'); const isPetrolDiesel=(sub==='Petrol' || sub==='Diesel'); if(wrap) wrap.style.display=isPetrolDiesel?'block':'none'; if(isPetrolDiesel) fillVehicleSelectForExpense();}
+function toggleSchoolFeeField(){const group=document.getElementById('eGroup').value; const sub=document.getElementById('eSubGroup').value; const wrap=document.getElementById('schoolFeeWrap'); const isFees=(group==='Fees' || sub==='School Fees' || sub.includes('Fees')); if(wrap) wrap.style.display=isFees?'block':'none'; if(isFees) fillChildSelectForFees();}
+function fillVehicleSelectForExpense(){const sel=document.getElementById('eVehicle'); if(!sel) return; sel.innerHTML='<option value="">-- Select Car/Bike *Compulsory --</option>'; if(vehicles.length===0){sel.innerHTML+='<option value="" disabled>No vehicles — Add in Vehicles Panel first</option>';} else {vehicles.forEach(v=>{const o=document.createElement('option'); o.value=v.name+' '+(v.number||''); o.textContent=v.name+' '+(v.number||''); sel.appendChild(o);});} sel.innerHTML+='<option value="Other">Other / General</option>';}
+function fillChildSelectForFees(){const sel=document.getElementById('eChildSelect'); if(!sel) return; sel.innerHTML='<option value="">-- Select Son / Child --</option>'; const children=family.filter(f=>['Child','Son','Daughter'].includes(f.relation)); if(children.length===0){sel.innerHTML+='<option value="" disabled>No Child/Son added — Add in Family Panel</option>';} else {children.forEach(c=>{const o=document.createElement('option'); o.value=c.name; o.textContent=c.name+' ('+c.relation+')'; sel.appendChild(o);});} family.forEach(f=>{if(!children.includes(f)){const o=document.createElement('option'); o.value=f.name; o.textContent=f.name+' ('+f.relation+')'; sel.appendChild(o);}});}
+function fillFamilySelect(){const sel=document.getElementById('eFamily'); if(!sel) return; sel.innerHTML='<option value="">-- General / Optional --</option>'; family.forEach(f=>{const o=document.createElement('option'); o.value=f.name; o.text=f.name+' ('+f.relation+') • Optional'; sel.appendChild(o)})}
+
+function calcWarrantyEndFromYears(){
+ const purchaseDate=document.getElementById('elPurchaseDate').value || document.getElementById('elWarrantyStart').value;
+ const years=parseFloat(document.getElementById('elWarrantyYears').value)||0;
+ const months=parseFloat(document.getElementById('elWarrantyMonths').value)||0;
+ if(!purchaseDate){document.getElementById('warrantyCalcInfo').style.display='none'; return;}
+ if(years===0 && months===0){document.getElementById('warrantyCalcInfo').style.display='none'; return;}
+ try{
+  const start=new Date(purchaseDate);
+  const end=new Date(start);
+  end.setFullYear(end.getFullYear()+Math.floor(years));
+  // Handle decimal years like 1.5
+  const decimalPart=years - Math.floor(years);
+  if(decimalPart>0){
+   end.setMonth(end.getMonth()+Math.round(decimalPart*12));
+  }
+  end.setMonth(end.getMonth()+months);
+  const endStr=end.toISOString().split('T')[0];
+  document.getElementById('elWarrantyEnd').value=endStr;
+  document.getElementById('elWarrantyStart').value=purchaseDate;
+  const info=document.getElementById('warrantyCalcInfo');
+  info.style.display='block';
+  info.innerHTML=`✅ Auto calculated: Purchase ${purchaseDate} + ${years>0? years+' years ':''}${months>0? months+' months':''} = Warranty End <b>${endStr}</b> • ${Math.ceil((end-start)/86400000)} days`;
+ }catch(e){console.log(e)}
+}
+
+function openExpModal(editId=null){
+ updateSubGroupOptions();
+ if(editId){
+  const e=expenses.find(x=>x.id===editId);
+  if(e){
+   document.getElementById('eGroup').value=e.group||'Food';
+   updateSubGroupOptions();
+   document.getElementById('eSubGroup').value=e.subGroup||'Other';
+   document.getElementById('eAmount').value=e.amount;
+   document.getElementById('eDate').value=e.date;
+   document.getElementById('eNote').value=e.note||'';
+   if(e.vehicle) document.getElementById('eVehicle').value=e.vehicle;
+   document.getElementById('eFamily').value=e.familyMember||'';
+   document.getElementById('eSchoolName').value=e.schoolName||'';
+   document.getElementById('eClass').value=e.className||'';
+   document.getElementById('eFeeType').value=e.feeType||'';
+   document.getElementById('eTerm').value=e.term||'';
+   document.getElementById('eChildSelect').value=e.childName||'';
+   document.getElementById('expModal').dataset.editId=editId;
+  }
+ } else {
+  delete document.getElementById('expModal').dataset.editId;
+  document.getElementById('eAmount').value=''; document.getElementById('eDate').value=''; document.getElementById('eVehicle').value=''; document.getElementById('eFamily').value='';
+  document.getElementById('eSchoolName').value=''; document.getElementById('eClass').value=''; document.getElementById('eFeeType').value=''; document.getElementById('eTerm').value=''; document.getElementById('eChildSelect').value='';
+ }
+ document.getElementById('expModal').classList.add('show');
+ fillFamilySelect(); fillVehicleSelectForExpense(); fillChildSelectForFees();
+ toggleVehicleField(); toggleSchoolFeeField();
+}
+
+function openFamilyModal(editId=null){
+ if(editId){
+  const f=family.find(x=>x.id===editId);
+  if(f){
+   document.getElementById('fName').value=f.name||'';
+   document.getElementById('fRelation').value=f.relation||'Self';
+   document.getElementById('fDob').value=f.dob||'';
+   document.getElementById('fGender').value=f.gender||'';
+   document.getElementById('fBloodGroup').value=f.bloodGroup||'';
+   document.getElementById('fMobile').value=f.mobile||'';
+   document.getElementById('fEmail').value=f.email||'';
+   document.getElementById('fOccupation').value=f.occupation||'';
+   document.getElementById('fAddress').value=f.address||'';
+   document.getElementById('fAadhaar').value=f.aadhaar||'';
+   document.getElementById('fPan').value=f.pan||'';
+   document.getElementById('fHeight').value=f.height||'';
+   document.getElementById('fWeight').value=f.weight||'';
+   document.getElementById('fMedicalHistory').value=f.medicalHistory||'';
+   document.getElementById('fAllergies').value=f.allergies||'';
+   document.getElementById('fMedications').value=f.medications||'';
+   document.getElementById('fDoctorName').value=f.doctorName||'';
+   document.getElementById('fDoctorContact').value=f.doctorContact||'';
+   document.getElementById('fHospital').value=f.hospital||'';
+   document.getElementById('fEmergencyContact').value=f.emergencyContact||'';
+   document.getElementById('fInsuranceCompany').value=f.insuranceCompany||'';
+   document.getElementById('fInsurancePolicyNo').value=f.insurancePolicyNo||'';
+   document.getElementById('fInsuranceExpiry').value=f.insuranceExpiry||'';
+   document.getElementById('fInsurancePremium').value=f.insurancePremium||'';
+   document.getElementById('fNominee').value=f.nominee||'';
+   document.getElementById('fNomineeRelation').value=f.nomineeRelation||'';
+   document.getElementById('fSchoolName').value=f.schoolName||'';
+   document.getElementById('fSchoolClass').value=f.schoolClass||'';
+   document.getElementById('fSchoolDue').value=f.schoolFeesDue||'';
+   document.getElementById('fSchoolFeesAmount').value=f.schoolFeesAmount||'';
+   document.getElementById('fSchoolContact').value=f.schoolContact||'';
+   document.getElementById('fNotes').value=f.notes||'';
+   document.getElementById('familyModal').dataset.editId=editId;
+  }
+ }else{
+  delete document.getElementById('familyModal').dataset.editId;
+  // Clear all
+  ['fName','fDob','fGender','fBloodGroup','fMobile','fEmail','fOccupation','fAddress','fAadhaar','fPan','fHeight','fWeight','fMedicalHistory','fAllergies','fMedications','fDoctorName','fDoctorContact','fHospital','fEmergencyContact','fInsuranceCompany','fInsurancePolicyNo','fInsuranceExpiry','fInsurancePremium','fNominee','fNomineeRelation','fSchoolName','fSchoolClass','fSchoolDue','fSchoolFeesAmount','fSchoolContact','fNotes'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+ }
+ document.getElementById('familyModal').classList.add('show')
+}
+function openInvModal(editId=null){if(editId){const inv=investments.find(x=>x.id===editId); if(inv){document.getElementById('iFamily').value=inv.familyMember; document.getElementById('iType').value=inv.type; document.getElementById('iName').value=inv.name; document.getElementById('iAmount').value=inv.amount; document.getElementById('iMaturityDate').value=inv.maturityDate||''; document.getElementById('invModal').dataset.editId=editId;}}else{delete document.getElementById('invModal').dataset.editId;} document.getElementById('invModal').classList.add('show')}
+function openElecModal(editId=null){
+ if(editId){
+  const el=electronics.find(x=>x.id===editId);
+  if(el){
+   document.getElementById('elType').value=el.type||'TV';
+   document.getElementById('elBrand').value=el.brand||'';
+   document.getElementById('elModel').value=el.model||'';
+   document.getElementById('elPurchaseDate').value=el.purchaseDate||'';
+   document.getElementById('elWarrantyYears').value=el.warrantyYears||'';
+   document.getElementById('elWarrantyMonths').value=el.warrantyMonths||'';
+   document.getElementById('elWarrantyStart').value=el.warrantyStart||el.purchaseDate||'';
+   document.getElementById('elWarrantyEnd').value=el.warrantyEnd||'';
+   document.getElementById('elWarrantyType').value=el.warrantyType||'Standard Warranty';
+   document.getElementById('elWarrantyCardNo').value=el.warrantyCardNo||'';
+   document.getElementById('elPrice').value=el.price||'';
+   document.getElementById('elDealer').value=el.dealer||'';
+   document.getElementById('elDealerContact').value=el.dealerContact||'';
+   document.getElementById('elAmcProvider').value=el.amcProvider||'';
+   document.getElementById('elAmcStart').value=el.amcStart||'';
+   document.getElementById('elAmcEnd').value=el.amcEnd||'';
+   document.getElementById('elAmcCost').value=el.amcCost||'';
+   document.getElementById('elLastService').value=el.lastService||'';
+   document.getElementById('elNextService').value=el.nextService||'';
+   document.getElementById('elServiceNote').value=el.serviceNote||'';
+   document.getElementById('elecModal').dataset.editId=editId;
+  }
+ }else{
+  delete document.getElementById('elecModal').dataset.editId;
+  ['elBrand','elModel','elPurchaseDate','elWarrantyYears','elWarrantyMonths','elWarrantyStart','elWarrantyEnd','elWarrantyCardNo','elPrice','elDealer','elDealerContact','elAmcProvider','elAmcStart','elAmcEnd','elAmcCost','elLastService','elNextService','elServiceNote'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  const info=document.getElementById('warrantyCalcInfo'); if(info) info.style.display='none';
+ }
+ document.getElementById('elecModal').classList.add('show')
+}
+function openVehModal(editId=null){if(editId){const v=vehicles.find(x=>x.id===editId); if(v){document.getElementById('vName').value=v.name; document.getElementById('vNumber').value=v.number||''; document.getElementById('vInsuranceExpiry').value=v.insuranceExpiry||''; document.getElementById('vPucExpiry').value=v.pucExpiry||''; document.getElementById('vehModal').dataset.editId=editId;}}else{delete document.getElementById('vehModal').dataset.editId;} document.getElementById('vehModal').classList.add('show')}
+function handleSignup(){const n=document.getElementById('sname').value,e=document.getElementById('semail').value,p=document.getElementById('spass').value; auth.createUserWithEmailAndPassword(e,p).then(c=>{c.user.updateProfile({displayName:n}); db.collection('users').doc(c.user.uid).set({email:e,displayName:n,created:firebase.firestore.FieldValue.serverTimestamp(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()})}).catch(err=>document.getElementById('authMsg').innerText=err.message)}
+function handleLogout(){auth.signOut()}
+function setDur(d){curDur=d; document.querySelectorAll('#userApp .dur-btn').forEach(b=>{if(b.dataset.d){b.classList.toggle('active', b.dataset.d===d)}}); renderExpenses(); renderUserKPI(); renderUserCharts();}
+function setInvFilter(f){invFamilyFilter=f; document.querySelectorAll('[data-f]').forEach(b=>b.classList.toggle('active', b.dataset.f===f)); renderInvestments(); renderUserCharts();}
+function setDueFilter(f){dueFilter=f; renderDueCalendar();}
+async function uploadPhoto(file, path){if(!file) return null; try{const ref=storage.ref().child(path+'/'+Date.now()+'_'+file.name); await ref.put(file); return await ref.getDownloadURL();}catch(e){return null;}}
+
+async function saveExpense(){
+ try{
+ const g=document.getElementById('eGroup').value; const sg=document.getElementById('eSubGroup').value; const amt=parseFloat(document.getElementById('eAmount').value); const date=document.getElementById('eDate').value; const fam=document.getElementById('eFamily').value; const note=document.getElementById('eNote').value; const vehicle=document.getElementById('eVehicle').value; const childName=document.getElementById('eChildSelect').value; const schoolName=document.getElementById('eSchoolName').value; const className=document.getElementById('eClass').value; const feeType=document.getElementById('eFeeType').value; const term=document.getElementById('eTerm').value; const fileEl=document.getElementById('eBillFile'); const file=fileEl?fileEl.files[0]:null; const errEl=document.getElementById('expErrorMsg'); if(errEl) errEl.style.display='none';
+ if(!amt || amt<=0){if(errEl){errEl.innerText='⚠️ Please enter Amount'; errEl.style.display='block';} return;}
+ if(!date){if(errEl){errEl.innerText='⚠️ Please select Date'; errEl.style.display='block';} return;}
+ const isPetrolDiesel=(sg==='Petrol' || sg==='Diesel');
+ if(isPetrolDiesel){if(!vehicle || vehicle.trim()===''){if(errEl){errEl.innerText='⚠️ For Petrol/Diesel, Vehicle selection is COMPULSORY.'; errEl.style.display='block';} const wrap=document.getElementById('vehicleFieldWrap'); if(wrap) wrap.style.border='2px solid #EF4444'; return;}}
+ let photoUrl=null; if(file) { try{ photoUrl=await uploadPhoto(file, `users/${currentUser.uid}/expenses`); }catch(e){ console.log('upload failed', e); } }
+ const editId=document.getElementById('expModal').dataset.editId;
+ const data={group:g, subGroup:sg, amount:amt, date, familyMember:fam||'', note, vehicle:vehicle||'', childName:childName||'', schoolName:schoolName||'', className:className||'', feeType:feeType||'', term:term||'', updated:firebase.firestore.FieldValue.serverTimestamp()};
+ if(photoUrl) data.billPhoto=photoUrl;
+ if(editId){await db.collection('users').doc(currentUser.uid).collection('expenses').doc(editId).update(data);}
+ else {data.created=firebase.firestore.FieldValue.serverTimestamp(); data.id='exp_'+Date.now(); await db.collection('users').doc(currentUser.uid).collection('expenses').doc(data.id).set(data);}
+ closeModals(); 
+ // Clear form for next entry
+ delete document.getElementById('expModal').dataset.editId;
+ document.getElementById('eAmount').value=''; document.getElementById('eDate').value=''; document.getElementById('eNote').value='';
+ if(typeof loadUserData==='function') loadUserData(); if(typeof loadOffice==="function") loadOffice(); if(typeof loadStaff==="function") loadStaff(); if(typeof loadSalary==="function") loadSalary(); if(typeof loadTasks==="function") loadTasks();
+ }catch(e){ console.error('saveExpense error', e); const errEl=document.getElementById('expErrorMsg'); if(errEl){ errEl.innerText='❌ Save failed: '+e.message; errEl.style.display='block'; } }
+}
+
+
+async function saveFamily(){
+ try{
+ const name=document.getElementById('fName').value.trim();
+ const dob=document.getElementById('fDob').value;
+ const errEl=document.getElementById('famErrorMsg'); if(errEl) errEl.style.display='none';
+ if(!name){if(errEl){errEl.innerText='⚠️ Full Name is mandatory'; errEl.style.display='block';} return;}
+ if(!dob){if(errEl){errEl.innerText='⚠️ Date of Birth is mandatory'; errEl.style.display='block';} return;}
+ const data={
+  name: name,
+  relation: document.getElementById('fRelation').value,
+  dob: dob,
+  gender: document.getElementById('fGender').value,
+  bloodGroup: document.getElementById('fBloodGroup').value,
+  mobile: document.getElementById('fMobile').value,
+  email: document.getElementById('fEmail').value,
+  occupation: document.getElementById('fOccupation').value,
+  address: document.getElementById('fAddress').value,
+  aadhaar: document.getElementById('fAadhaar').value,
+  pan: document.getElementById('fPan').value,
+  height: document.getElementById('fHeight').value,
+  weight: document.getElementById('fWeight').value,
+  medicalHistory: document.getElementById('fMedicalHistory').value,
+  allergies: document.getElementById('fAllergies').value,
+  medications: document.getElementById('fMedications').value,
+  doctorName: document.getElementById('fDoctorName').value,
+  doctorContact: document.getElementById('fDoctorContact').value,
+  hospital: document.getElementById('fHospital').value,
+  emergencyContact: document.getElementById('fEmergencyContact').value,
+  insuranceCompany: document.getElementById('fInsuranceCompany').value,
+  insurancePolicyNo: document.getElementById('fInsurancePolicyNo').value,
+  insuranceExpiry: document.getElementById('fInsuranceExpiry').value,
+  insurancePremium: document.getElementById('fInsurancePremium').value,
+  nominee: document.getElementById('fNominee').value,
+  nomineeRelation: document.getElementById('fNomineeRelation').value,
+  schoolName: document.getElementById('fSchoolName').value,
+  schoolClass: document.getElementById('fSchoolClass').value,
+  schoolFeesDue: document.getElementById('fSchoolDue').value,
+  schoolFeesAmount: document.getElementById('fSchoolFeesAmount').value,
+  schoolContact: document.getElementById('fSchoolContact').value,
+  notes: document.getElementById('fNotes').value,
+  updated: firebase.firestore.FieldValue.serverTimestamp()
+ };
+ const editId=document.getElementById('familyModal').dataset.editId;
+ if(editId){await db.collection('users').doc(currentUser.uid).collection('family').doc(editId).update(data);}
+ else {data.created=firebase.firestore.FieldValue.serverTimestamp(); data.id='fam_'+Date.now(); await db.collection('users').doc(currentUser.uid).collection('family').doc(data.id).set(data);}
+ closeModals(); 
+ delete document.getElementById('familyModal').dataset.editId;
+ if(typeof loadUserData==='function') loadUserData(); if(typeof loadOffice==="function") loadOffice(); if(typeof loadStaff==="function") loadStaff(); if(typeof loadSalary==="function") loadSalary(); if(typeof loadTasks==="function") loadTasks();
+ }catch(e){ console.error('saveFamily error', e); const errEl=document.getElementById('famErrorMsg'); if(errEl){ errEl.innerText='❌ Save failed: '+e.message; errEl.style.display='block'; } }
+}
+async function saveInvestment(){ try{ const fam=document.getElementById('iFamily').value, type=document.getElementById('iType').value, name=document.getElementById('iName').value, amt=parseFloat(document.getElementById('iAmount').value), start=document.getElementById('iStartDate').value, mat=document.getElementById('iMaturityDate').value, intr=document.getElementById('iInterest').value; if(!name || !amt){ alert('Please fill Name and Amount'); return; } const data={familyMember:fam,type,name,amount:amt,startDate:start,maturityDate:mat,interest:intr, updated:firebase.firestore.FieldValue.serverTimestamp()}; const editId=document.getElementById('invModal').dataset.editId; if(editId){await db.collection('users').doc(currentUser.uid).collection('investments').doc(editId).update(data);} else {data.created=firebase.firestore.FieldValue.serverTimestamp(); data.id='inv_'+Date.now(); await db.collection('users').doc(currentUser.uid).collection('investments').doc(data.id).set(data);} closeModals(); delete document.getElementById('invModal').dataset.editId; if(typeof loadUserData==='function') loadUserData(); if(typeof loadOffice==="function") loadOffice(); if(typeof loadStaff==="function") loadStaff(); if(typeof loadSalary==="function") loadSalary(); if(typeof loadTasks==="function") loadTasks(); }catch(e){ console.error('saveInvestment error', e); alert('Save failed: '+e.message); } }
+async function saveElectronics(){ try{
+ const type=document.getElementById('elType').value, brand=document.getElementById('elBrand').value, model=document.getElementById('elModel').value, purchaseDate=document.getElementById('elPurchaseDate').value, price=parseFloat(document.getElementById('elPrice').value), dealer=document.getElementById('elDealer').value, dealerContact=document.getElementById('elDealerContact').value;
+ const warrantyYears=parseFloat(document.getElementById('elWarrantyYears').value)||0;
+ const warrantyMonths=parseFloat(document.getElementById('elWarrantyMonths').value)||0;
+ const warrantyStart=document.getElementById('elWarrantyStart').value||purchaseDate;
+ const warrantyEnd=document.getElementById('elWarrantyEnd').value;
+ const warrantyType=document.getElementById('elWarrantyType').value;
+ const warrantyCardNo=document.getElementById('elWarrantyCardNo').value;
+ const amcProvider=document.getElementById('elAmcProvider').value, amcStart=document.getElementById('elAmcStart').value, amcEnd=document.getElementById('elAmcEnd').value, amcCost=document.getElementById('elAmcCost').value, lastService=document.getElementById('elLastService').value, nextService=document.getElementById('elNextService').value, serviceNote=document.getElementById('elServiceNote').value;
+ const file=document.getElementById('elBillFile').files[0]; let billUrl=null; if(file) billUrl=await uploadPhoto(file, `users/${currentUser.uid}/electronics`);
+ const editId=document.getElementById('elecModal').dataset.editId;
+ const data={type,brand,model,purchaseDate,price,dealer,dealerContact,warrantyYears,warrantyMonths,warrantyStart,warrantyEnd,warrantyType,warrantyCardNo,amcProvider,amcStart,amcEnd,amcCost,lastService,nextService,serviceNote, updated: firebase.firestore.FieldValue.serverTimestamp()};
+ if(billUrl) data.billPhoto=billUrl;
+ if(editId){await db.collection('users').doc(currentUser.uid).collection('electronics').doc(editId).update(data);}
+ else {data.created=firebase.firestore.FieldValue.serverTimestamp(); data.id='elec_'+Date.now(); await db.collection('users').doc(currentUser.uid).collection('electronics').doc(data.id).set(data);}
+ closeModals(); delete document.getElementById('elecModal').dataset.editId; if(typeof loadUserData==='function') loadUserData(); if(typeof loadOffice==="function") loadOffice(); if(typeof loadStaff==="function") loadStaff(); if(typeof loadSalary==="function") loadSalary(); if(typeof loadTasks==="function") loadTasks();
+ }catch(e){ console.error('saveElectronics error', e); alert('Save failed: '+e.message); }
+}
+async function saveVehicle(){ try{ const name=document.getElementById('vName').value, num=document.getElementById('vNumber').value, ins=document.getElementById('vInsuranceExpiry').value, puc=document.getElementById('vPucExpiry').value; if(!name){ alert('Please fill Vehicle Name'); return; } const editId=document.getElementById('vehModal').dataset.editId; const data={name,number:num,insuranceExpiry:ins,pucExpiry:puc, updated:firebase.firestore.FieldValue.serverTimestamp()}; if(editId){await db.collection('users').doc(currentUser.uid).collection('vehicles').doc(editId).update(data);} else {data.created=firebase.firestore.FieldValue.serverTimestamp(); data.id='veh_'+Date.now(); await db.collection('users').doc(currentUser.uid).collection('vehicles').doc(data.id).set(data);} closeModals(); delete document.getElementById('vehModal').dataset.editId; if(typeof loadUserData==='function') loadUserData(); if(typeof loadOffice==="function") loadOffice(); if(typeof loadStaff==="function") loadStaff(); if(typeof loadSalary==="function") loadSalary(); if(typeof loadTasks==="function") loadTasks(); }catch(e){ console.error('saveVehicle error', e); alert('Save failed: '+e.message); } }
+async function deleteExpense(id){if(!confirm('Delete expense?')) return; await db.collection('users').doc(currentUser.uid).collection('expenses').doc(id).delete(); loadUserData()}
+async function deleteFamily(id){if(!confirm('Delete family member? All full details will be deleted.')) return; await db.collection('users').doc(currentUser.uid).collection('family').doc(id).delete(); loadUserData()}
+async function deleteInvestment(id){if(!confirm('Delete investment?')) return; await db.collection('users').doc(currentUser.uid).collection('investments').doc(id).delete(); loadUserData()}
+async function deleteElectronics(id){if(!confirm('Delete electronics?')) return; await db.collection('users').doc(currentUser.uid).collection('electronics').doc(id).delete(); loadUserData()}
+async function deleteVehicle(id){if(!confirm('Delete vehicle?')) return; await db.collection('users').doc(currentUser.uid).collection('vehicles').doc(id).delete(); loadUserData()}
+
+function calcDays(dateStr){if(!dateStr) return ''; const diff=Math.ceil((new Date(dateStr)-new Date())/(1000*60*60*24)); if(diff<0) return `<span class="badge badge-red">Overdue ${Math.abs(diff)}d</span>`; if(diff===0) return `<span class="badge badge-yellow">Today</span>`; if(diff<=3) return `<span class="badge badge-yellow">🔔 ${diff}d</span>`; if(diff<=10) return `<span class="badge badge-green">⏰ ${diff}d</span>`; return `<span class="badge badge-green">${diff}d</span>`}
+
+function renderUserKPI(){
+let totalExp=0; expenses.forEach(e=>totalExp+=e.amount||0);
+let totalInv=0; investments.forEach(i=>totalInv+=i.amount||0);
+document.getElementById('uKpiTotalExp').innerText='₹'+totalExp.toLocaleString();
+document.getElementById('uKpiTotalInv').innerText='₹'+totalInv.toLocaleString();
+document.getElementById('uKpiTotalFam').innerText=family.length;
+document.getElementById('uKpiTotalElec').innerText=electronics.length;
+document.getElementById('uKpiTotalVeh').innerText=vehicles.length;
+document.getElementById('uKpiExpSub').innerText=expenses.length+' entries';
+document.getElementById('uKpiInvSub').innerText=investments.length+' inv • Head Wise';
+}
+function renderUserCharts(){
+const monthNames=[]; for(let i=5;i>=0;i--){const d=new Date(); d.setMonth(d.getMonth()-i); monthNames.push({name:d.toLocaleString('default',{month:'short'}), month:d.getMonth(), year:d.getFullYear(), total:0})}
+expenses.forEach(e=>{try{const d=new Date(e.date); const m=monthNames.find(mn=>mn.month===d.getMonth() && mn.year===d.getFullYear()); if(m) m.total+=e.amount||0;}catch{}});
+const maxVal=Math.max(...monthNames.map(m=>m.total),1);
+let barHtml='';
+monthNames.forEach((m,i)=>{const h=Math.max((m.total/maxVal)*100, m.total>0?20:8); const isActive=i===monthNames.length-1 && m.total>0; barHtml+=`<div class="bar-col"><div class="bar ${isActive?'active':''}" style="height:${h}%;background:${m.total>0?'':'#F3F0FF'}"></div><div class="bar-label">${m.name}</div><div class="bar-val">${m.total>0?'₹'+m.total:''}</div></div>`;});
+if(expenses.length===0) barHtml=`<div style="width:100%;text-align:center;padding:40px;color:#8B8BA7">No expenses yet</div>`;
+document.getElementById('uBarChart').innerHTML=barHtml;
+document.getElementById('uBarTotalText').innerText='Last 6 months • '+expenses.length+' expenses • Total ₹'+expenses.reduce((s,e)=>s+(e.amount||0),0).toLocaleString();
+document.getElementById('uGrowthBadge').innerText=expenses.length>0?'Live: '+expenses.length:'No data';
+const donutEl=document.getElementById('uDonutChart');
+if(investments.length>0){
+ const byFamily={}; investments.forEach(i=>{byFamily[i.familyMember]=(byFamily[i.familyMember]||0)+(i.amount||0)});
+ const total=Object.values(byFamily).reduce((a,b)=>a+b,0);
+ let gradient=''; let start=0; const colors=['#5B3DF6','#7C3AED','#A78BFA','#C4B5FD','#DDD6FF','#EDE9FF'];
+ let idx=0; let listHtml='';
+ for(const fam in byFamily){
+  const pct=(byFamily[fam]/total)*100;
+  const end=start+pct;
+  gradient+=`${colors[idx%colors.length]} ${start}% ${end}%,`;
+  listHtml+=`<div class="city-row"><span><span class="city-dot" style="background:${colors[idx%colors.length]}"></span>${fam}</span><span>${Math.round(pct)}% <b style="margin-left:10px">₹${byFamily[fam].toLocaleString()}</b></span></div>`;
+  start=end; idx++;
+ }
+ donutEl.style.background=`conic-gradient(${gradient.slice(0,-1)})`;
+ document.getElementById('uCityList').innerHTML=listHtml;
+ document.getElementById('uDonutTotal').innerText='₹'+total.toLocaleString();
+ document.getElementById('uCityStats').innerHTML=`<div class="city-stat-card"><div style="font-size:10px;color:#8B8BA7">TOTAL</div><div><b>₹${total.toLocaleString()}</b></div></div><div class="city-stat-card"><div style="font-size:10px;color:#8B8BA7">FAMILIES</div><div><b>${Object.keys(byFamily).length}</b></div></div><div class="city-stat-card"><div style="font-size:10px;color:#8B8BA7">COUNT</div><div><b>${investments.length}</b></div></div>`;
+} else {
+ donutEl.style.background=`conic-gradient(#EDE9FF 0% 100%)`;
+ document.getElementById('uCityList').innerHTML=`<div style="padding:20px;text-align:center;color:#8B8BA7">No investments yet</div>`;
+ document.getElementById('uDonutTotal').innerText='₹0';
+ document.getElementById('uCityStats').innerHTML='';
+}
+}
+function renderExpenses(){
+const list=document.getElementById('expList'); if(!list) return;
+let filtered=expenses; const now=new Date();
+if(curDur==='week'){const s=new Date(); s.setDate(now.getDate()-7); filtered=filtered.filter(e=>{try{return new Date(e.date)>=s}catch{return false}})}
+else if(curDur==='month'){filtered=filtered.filter(e=>{try{const d=new Date(e.date); return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();}catch{return false}})}
+else if(curDur==='year'){filtered=filtered.filter(e=>{try{return new Date(e.date).getFullYear()===now.getFullYear();}catch{return false}})}
+const groupMap={}; filtered.forEach(e=>{groupMap[e.group]=(groupMap[e.group]||0)+(e.amount||0);});
+const groupCount={}; filtered.forEach(e=>{groupCount[e.group]=(groupCount[e.group]||0)+1;});
+const groupWiseEl=document.getElementById('expGroupWiseTop');
+if(groupWiseEl){
+ if(Object.keys(groupMap).length===0){groupWiseEl.innerHTML=`<div style="grid-column:1/-1;padding:20px;text-align:center;color:#8B8BA7;background:#F9FAFB;border-radius:12px;border:1px dashed #E9E8F5">No expenses</div>`;} else {let html=''; const colors={Food:'#10B981', Transport:'#F59E0B', Shopping:'#EC4899', Fees:'#5B3DF6', Medical:'#EF4444', Other:'#6B7280'}; for(const g in groupMap){const icon={Food:'🍔', Transport:'🚗', Shopping:'🛍️', Fees:'🎓', Medical:'🏥', Other:'📦'}[g]||'💰'; const color=colors[g]||'#7C3AED'; html+=`<div class="group-kpi-card" onclick="filterExpenseByGroup('${g}')" style="border-left:4px solid ${color}"><div class="group-kpi-label">${icon} ${g} • Click</div><div class="group-kpi-value" style="color:${color}">₹${groupMap[g].toLocaleString()}</div><div class="group-kpi-sub">${groupCount[g]} entries • ${Math.round((groupMap[g]/filtered.reduce((s,e)=>s+(e.amount||0),0))*100)}%</div></div>`;} const vehMap={}; filtered.filter(e=>e.vehicle).forEach(e=>{vehMap[e.vehicle]=(vehMap[e.vehicle]||0)+(e.amount||0);}); for(const v in vehMap){html+=`<div class="group-kpi-card" onclick="filterExpenseByVehicle('${v}')" style="border-left:4px solid #FCD34D;background:#FFFBEB"><div class="group-kpi-label">🚗 ${v} • Petrol • Click</div><div class="group-kpi-value" style="color:#92400E">₹${vehMap[v].toLocaleString()}</div><div class="group-kpi-sub">Vehicle-wise</div></div>`;} groupWiseEl.innerHTML=html;}}
+list.innerHTML=''; if(filtered.length===0){list.innerHTML=`<div class="item"><div style="color:#8B8BA7">No expenses</div></div>`; return;} filtered.forEach(e=>{const d=document.createElement('div'); d.className='item'; d.innerHTML=`<div><b>${e.group||''} - ${e.subGroup||''}</b> ${e.vehicle?`<span style="background:#FFFBEB;border:1px solid #FCD34D;padding:2px 6px;border-radius:8px;font-size:10px">🚗 ${e.vehicle}</span>`:''} <span style="font-size:11px;color:#6B7280">${e.familyMember? '• Family: '+e.familyMember:''} ${e.childName? '• Child: '+e.childName:''}</span><div style="font-size:11px;color:#6B7280">${e.date||''} • ₹${e.amount||0} ${e.schoolName? '• School: '+e.schoolName:''} ${e.note?'• '+e.note:''}</div></div><div><button class="action-btn edit" onclick="openExpModal('${e.id}')">✏️</button><button class="action-btn delete" onclick="deleteExpense('${e.id}')">🗑️</button></div>`; list.appendChild(d);}); const gTabs=document.getElementById('expGroupTabs'); if(gTabs){const groups=[...new Set(expenses.map(e=>e.group).filter(Boolean))]; gTabs.innerHTML=''; groups.forEach(g=>{const b=document.createElement('button'); b.className='tab'; b.innerText=g; b.onclick=()=>filterExpenseByGroup(g); gTabs.appendChild(b)});} const sgTabs=document.getElementById('expSubGroupTabs'); if(sgTabs){const subGroups=[...new Set(expenses.map(e=>e.subGroup).filter(Boolean))]; sgTabs.innerHTML=''; subGroups.forEach(sg=>{const b=document.createElement('button'); b.className='tab'; b.innerText=sg; b.onclick=()=>{document.getElementById('expList').innerHTML=''; expenses.filter(e=>e.subGroup===sg).forEach(e=>{const d=document.createElement('div'); d.className='item'; d.innerHTML=`<div><b>${e.group} - ${sg} ${e.vehicle?'🚗 '+e.vehicle:''}</b> ₹${e.amount}</div><div><button class="action-btn edit" onclick="openExpModal('${e.id}')">✏️</button><button class="action-btn delete" onclick="deleteExpense('${e.id}')">🗑️</button></div>`; document.getElementById('expList').appendChild(d)});}; sgTabs.appendChild(b)});}}
+function filterExpenseByGroup(g){document.getElementById('expList').innerHTML=''; expenses.filter(e=>e.group===g).forEach(e=>{const d=document.createElement('div'); d.className='item'; d.innerHTML=`<div><b>${e.subGroup||g} ${e.vehicle?'🚗 '+e.vehicle:''}</b> • ₹${e.amount} • ${e.date}</div><div><button class="action-btn edit" onclick="openExpModal('${e.id}')">✏️</button><button class="action-btn delete" onclick="deleteExpense('${e.id}')">🗑️</button></div>`; document.getElementById('expList').appendChild(d)}); document.getElementById('expPanel').scrollIntoView({behavior:'smooth'});}
+function filterExpenseByVehicle(v){document.getElementById('expList').innerHTML=''; expenses.filter(e=>e.vehicle===v).forEach(e=>{const d=document.createElement('div'); d.className='item'; d.innerHTML=`<div><b>🚗 ${v} • ${e.subGroup} ₹${e.amount}</b><div style="font-size:11px">${e.date} • ${e.group}</div></div><div><button class="action-btn edit" onclick="openExpModal('${e.id}')">✏️</button><button class="action-btn delete" onclick="deleteExpense('${e.id}')">🗑️</button></div>`; document.getElementById('expList').appendChild(d)});}
+
+function renderFamily(){
+ const list=document.getElementById('familyList'); if(!list) return; list.innerHTML='';
+ if(family.length===0){list.innerHTML=`<div class="item"><div style="color:#8B8BA7">No family members — Add full details with medical & mandatory info</div></div>`; return;}
+ family.forEach(f=>{
+  const d=document.createElement('div'); d.className='item'; d.style.flexDirection='column'; d.style.alignItems='flex-start';
+  d.innerHTML=`
+   <div style="width:100%;display:flex;justify-content:space-between"><div><b>👤 ${f.name||''}</b> <span style="background:#F5F3FF;padding:2px 8px;border-radius:10px;font-size:11px">${f.relation||''} ${f.gender? '• '+f.gender:''} ${f.bloodGroup? '• 🩸 '+f.bloodGroup:''}</span><div style="font-size:11px;color:#6B7280;margin-top:4px">DOB: ${f.dob||'-'} • Age: ${f.dob? Math.floor((new Date()-new Date(f.dob))/31557600000)+' years':''} • Mobile: ${f.mobile||'-'} • ${f.occupation||''}</div>
+   <div style="font-size:11px;color:#6B7280;margin-top:2px">${f.address? '📍 '+f.address+'<br>':''}${f.email? '📧 '+f.email+' • ':''}${f.aadhaar? 'Aadhaar: '+f.aadhaar:''}</div>
+   ${f.medicalHistory||f.allergies||f.doctorName? `<div style="font-size:11px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:6px;margin-top:6px">🏥 Medical: ${f.medicalHistory? 'History: '+f.medicalHistory+' • ':''}${f.allergies? 'Allergies: '+f.allergies+' • ':''}${f.medications? 'Medicines: '+f.medications+'<br>':''}${f.doctorName? '👨‍⚕️ Dr. '+f.doctorName+' '+ (f.doctorContact||'')+' • ':''}${f.hospital? 'Hospital: '+f.hospital:''} ${f.emergencyContact? '• 🚨 Emergency: '+f.emergencyContact:''}</div>`:''}
+   ${f.insuranceCompany||f.insuranceExpiry? `<div style="font-size:11px;color:#5B3DF6;margin-top:4px">🛡️ Insurance: ${f.insuranceCompany||''} ${f.insurancePolicyNo? '• Policy: '+f.insurancePolicyNo:''} ${f.insuranceExpiry? '• Expiry: '+f.insuranceExpiry+' '+calcDays(f.insuranceExpiry):''}</div>`:''}
+   ${f.schoolName||f.schoolClass? `<div style="font-size:11px;color:#059669;margin-top:4px">🎓 School: ${f.schoolName||''} ${f.schoolClass? '• Class: '+f.schoolClass:''} ${f.schoolFeesDue? '• Fees Due: '+f.schoolFeesDue:''}</div>`:''}
+   ${f.notes? `<div style="font-size:11px;color:#6B7280;margin-top:4px">📝 ${f.notes}</div>`:''}
+   </div><div><button class="action-btn edit" onclick="openFamilyModal('${f.id}')">✏️ Edit Full</button><button class="action-btn delete" onclick="deleteFamily('${f.id}')">🗑️</button></div></div>`;
+  list.appendChild(d)
+ })
+}
+function renderInvestments(){const list=document.getElementById('invList'); if(!list) return; let filtered=investments; if(invFamilyFilter!=='all') filtered=filtered.filter(i=>i.familyMember===invFamilyFilter); list.innerHTML=''; if(filtered.length===0){list.innerHTML=`<div class="item"><div style="color:#8B8BA7">No investments for ${invFamilyFilter}</div></div>`; return;} filtered.forEach(i=>{const d=document.createElement('div'); d.className='item'; d.innerHTML=`<div><b>${i.familyMember||''} • ${i.type||''} • ${i.name||''}</b><div style="font-size:11px;color:#6B7280">₹${i.amount||0} • Mat: ${i.maturityDate||'-'} ${i.maturityDate?calcDays(i.maturityDate):''}</div></div><div><button class="action-btn edit" onclick="openInvModal('${i.id}')">✏️</button><button class="action-btn delete" onclick="deleteInvestment('${i.id}')">🗑️</button></div>`; list.appendChild(d)})}
+function renderElectronics(){
+ const list=document.getElementById('elecList'); if(!list) return; list.innerHTML='';
+ if(electronics.length===0){list.innerHTML=`<div class="item"><div style="color:#8B8BA7">No electronics — Add with warranty in years format (e.g., 3 years)</div></div>`; return;}
+ electronics.forEach(e=>{
+  const d=document.createElement('div'); d.className='item'; d.style.flexDirection='column'; d.style.alignItems='flex-start';
+  d.innerHTML=`<div style="width:100%;display:flex;justify-content:space-between"><div><b>📺 ${e.type||''} • ${e.brand||''} ${e.model||''}</b><div style="font-size:11px;color:#6B7280;margin-top:2px">Purchase: ${e.purchaseDate||'-'} • Price: ₹${e.price||'-'} • Dealer: ${e.dealer||'-'}</div>
+  <div style="font-size:11px;background:#EEF2FF;border:1px solid #C4B5FD;border-radius:8px;padding:6px;margin-top:6px">🛡️ Warranty: ${e.warrantyYears? e.warrantyYears+' years':''} ${e.warrantyMonths? e.warrantyMonths+' months':''} ${e.warrantyType? '• '+e.warrantyType:''}<br>Start: ${e.warrantyStart||e.purchaseDate||'-'} → End: ${e.warrantyEnd||'-'} ${e.warrantyEnd?calcDays(e.warrantyEnd):''} ${e.warrantyCardNo? '• Card: '+e.warrantyCardNo:''}</div>
+  <div style="font-size:11px;color:#6B7280;margin-top:4px">🔧 AMC: ${e.amcProvider||'-'} ${e.amcEnd? '• AMC End: '+e.amcEnd+' '+calcDays(e.amcEnd):''} • Next Service: ${e.nextService||'-'}</div></div><div><button class="action-btn edit" onclick="openElecModal('${e.id}')">✏️</button><button class="action-btn delete" onclick="deleteElectronics('${e.id}')">🗑️</button></div></div>`;
+  list.appendChild(d)
+ });
+ const tTabs=document.getElementById('elecTypeTabs'); if(tTabs){const types=[...new Set(electronics.map(e=>e.type).filter(Boolean))]; tTabs.innerHTML=''; types.forEach(t=>{const b=document.createElement('button'); b.className='tab'; b.innerText=t; b.onclick=()=>{document.getElementById('elecList').innerHTML=''; electronics.filter(x=>x.type===t).forEach(e=>{const d=document.createElement('div'); d.className='item'; d.innerHTML=`<div><b>${e.brand} ${e.model}</b> • Warranty: ${e.warrantyYears? e.warrantyYears+' years':''} ${e.warrantyEnd||'-'} ${calcDays(e.warrantyEnd)}</div><div><button class="action-btn edit" onclick="openElecModal('${e.id}')">✏️</button><button class="action-btn delete" onclick="deleteElectronics('${e.id}')">🗑️</button></div>`; document.getElementById('elecList').appendChild(d)});}; tTabs.appendChild(b)});}
+}
+function renderVehicles(){const list=document.getElementById('vehList'); if(!list) return; list.innerHTML=''; if(vehicles.length===0){list.innerHTML=`<div class="item"><div style="color:#8B8BA7">No vehicles yet</div></div>`; return;} vehicles.forEach(v=>{const d=document.createElement('div'); d.className='item'; d.innerHTML=`<div><b>🚗 ${v.name||''} ${v.number||''}</b><div style="font-size:11px;color:#6B7280">Insurance: ${v.insuranceExpiry||'-'} ${v.insuranceExpiry?calcDays(v.insuranceExpiry):''} • PUC: ${v.pucExpiry||'-'}</div></div><div><button class="action-btn edit" onclick="openVehModal('${v.id}')">✏️</button><button class="action-btn delete" onclick="deleteVehicle('${v.id}')">🗑️</button></div>`; list.appendChild(d)})}
+function renderDueCalendar(){const list=document.getElementById('dueList'); if(!list) return; let all=[]; investments.forEach(i=>{if(i.maturityDate) all.push({title:`${i.familyMember||''} • ${i.type||''} • ${i.name||''} • Maturity`, date:i.maturityDate, type:'investment'})}); electronics.forEach(e=>{if(e.warrantyEnd) all.push({title:`📺 ${e.type||''} ${e.brand||''} Warranty End (${e.warrantyYears? e.warrantyYears+' years':''})`, date:e.warrantyEnd, type:'warranty'}); if(e.amcEnd) all.push({title:`🔧 ${e.type||''} ${e.brand||''} AMC End`, date:e.amcEnd, type:'warranty'}); if(e.nextService) all.push({title:`🔧 ${e.type||''} ${e.brand||''} Next Service`, date:e.nextService, type:'warranty'})}); vehicles.forEach(v=>{if(v.insuranceExpiry) all.push({title:`🚗 ${v.name||''} Insurance`, date:v.insuranceExpiry, type:'insurance'}); if(v.pucExpiry) all.push({title:`🚗 ${v.name||''} PUC`, date:v.pucExpiry, type:'insurance'})}); family.forEach(f=>{if(f.insuranceExpiry) all.push({title:`👨‍👩‍👧 ${f.name||''} Health Insurance`, date:f.insuranceExpiry, type:'insurance'}); if(f.schoolFeesDue) all.push({title:`🎓 ${f.name||''} School Fees`, date:f.schoolFeesDue, type:'school'})});
+all=all.filter(a=>a.date).sort((a,b)=>new Date(a.date)-new Date(b.date)); let filtered=all; if(dueFilter==='10days') filtered=all.filter(a=>{const diff=Math.ceil((new Date(a.date)-new Date())/86400000); return diff>=0 && diff<=10}); else if(dueFilter==='overdue') filtered=all.filter(a=>new Date(a.date)<new Date()); else if(dueFilter!=='all') filtered=all.filter(a=>a.type===dueFilter);
+const upcoming=all.filter(a=>{const diff=Math.ceil((new Date(a.date)-new Date())/86400000); return diff>=0 && diff<=10}).length; const overdue=all.filter(a=>new Date(a.date)<new Date()).length;
+const uKpiDue=document.getElementById('uKpiTotalDue'); if(uKpiDue) uKpiDue.innerText=upcoming;
+const uKpiDueSub=document.getElementById('uKpiDueSub'); if(uKpiDueSub) uKpiDueSub.innerText=upcoming+' due • '+overdue+' overdue • Upside';
+const bar=document.getElementById('uNotifyBar'); if(bar){if(upcoming>0 || overdue>0){bar.style.display='flex'; bar.className='notify-bar'; bar.innerHTML=`🔔 <b>${upcoming} items due in next 10 days</b> ${overdue>0?`• <span style="color:#DC2626">${overdue} Overdue 🔴</span>`:''}`; } else {bar.style.display='none'}}
+list.innerHTML=''; if(filtered.length===0){list.innerHTML=`<div class="item"><div style="color:#8B8BA7">No due items</div></div>`; return;} filtered.forEach(a=>{const d=document.createElement('div'); d.className='item'; const diff=Math.ceil((new Date(a.date)-new Date())/86400000); let badge=''; if(diff<0) badge='<span class="badge badge-red">Overdue</span>'; else if(diff===0) badge='<span class="badge badge-yellow">Today</span>'; else if(diff<=3) badge=`<span class="badge badge-yellow">🔔 ${diff}d</span>`; else if(diff<=10) badge=`<span class="badge badge-green">⏰ ${diff}d</span>`; else badge=`<span class="badge badge-green">${diff}d</span>`; d.innerHTML=`<div><b>${a.title}</b><div style="font-size:11px;color:#6B7280">Due: ${a.date}</div></div><div>${badge}</div>`; list.appendChild(d)})
+}
+
+async function loadUserData(){ console.log('loadUserData called'); 
+if(!currentUser) return; const uid=currentUser.uid;
+try{const expSnap=await db.collection('users').doc(uid).collection('expenses').get(); expenses=expSnap.docs.map(d=>({id:d.id, ...d.data()}));}catch(e){expenses=[]}
+try{const famSnap=await db.collection('users').doc(uid).collection('family').get(); family=famSnap.docs.map(d=>({id:d.id, ...d.data()}));}catch(e){family=[]}
+try{const invSnap=await db.collection('users').doc(uid).collection('investments').get(); investments=invSnap.docs.map(d=>({id:d.id, ...d.data()}));}catch(e){investments=[]}
+try{const elecSnap=await db.collection('users').doc(uid).collection('electronics').get(); electronics=elecSnap.docs.map(d=>({id:d.id, ...d.data()}));}catch(e){electronics=[]}
+try{const vehSnap=await db.collection('users').doc(uid).collection('vehicles').get(); vehicles=vehSnap.docs.map(d=>({id:d.id, ...d.data()}));}catch(e){vehicles=[]}
+renderUserKPI(); renderUserCharts(); renderExpenses(); renderFamily(); renderInvestments(); renderElectronics(); renderVehicles(); renderDueCalendar();
+fillVehicleSelectForExpense(); fillChildSelectForFees(); fillFamilySelect();
+}
+
+// ADMIN — LOCKED
+async function loadAdminUsers(){
+try{
+const snap=await db.collection('users').get();
+const userDocs=snap.docs.filter(doc=>{
+ const email=(doc.data().email||'').toLowerCase();
+ return !ADMIN_EMAILS.map(a=>a.toLowerCase()).includes(email);
+});
+const totalUsers=userDocs.length;
+let activeToday=0, newThisMonth=0;
+const now=new Date(); const startOfMonth=new Date(now.getFullYear(), now.getMonth(), 1);
+const monthMap={};
+userDocs.forEach(doc=>{
+ const data=doc.data();
+ if(data.lastLogin){
+  let ld; if(data.lastLogin.seconds) ld=new Date(data.lastLogin.seconds*1000); else ld=new Date(data.lastLogin);
+  if(ld.toDateString()===now.toDateString()) activeToday++;
+ }
+ if(data.created && data.created.seconds){
+  const cd=new Date(data.created.seconds*1000);
+  if(cd>=startOfMonth) newThisMonth++;
+  const mName=cd.toLocaleString('default',{month:'short'});
+  monthMap[mName]=(monthMap[mName]||0)+1;
+ }
+});
+let famCount=0, vehCount=0, invCount=0;
+for(const doc of userDocs){
+ try{
+  const fSnap=await db.collection('users').doc(doc.id).collection('family').get(); famCount+=fSnap.size;
+  const vSnap=await db.collection('users').doc(doc.id).collection('vehicles').get(); vehCount+=vSnap.size;
+  const iSnap=await db.collection('users').doc(doc.id).collection('investments').get(); invCount+=iSnap.size;
+ }catch(e){}
+}
+document.getElementById('kpiTotalUsers').innerText=totalUsers;
+document.getElementById('kpiTotalUsersSub').innerText='Live: '+totalUsers+' users';
+document.getElementById('kpiActiveToday').innerText=activeToday;
+document.getElementById('kpiTotalFamilies').innerText=famCount;
+document.getElementById('kpiTotalVehicles').innerText=vehCount;
+document.getElementById('kpiTotalInv').innerText=invCount;
+document.getElementById('kpiNewMonth').innerText=newThisMonth;
+document.getElementById('donutTotal').innerText=totalUsers;
+document.getElementById('barTotalText').innerText='Live • Total '+totalUsers;
+document.getElementById('growthBadge').innerText=totalUsers>0 ? 'Live: '+totalUsers:'No users';
+const last6Names=[]; for(let i=5;i>=0;i--){const d=new Date(); d.setMonth(d.getMonth()-i); last6Names.push(d.toLocaleString('default',{month:'short'}));}
+let barValues=last6Names.map(name=>({name:name, val: monthMap[name]||0}));
+if(barValues.every(b=>b.val===0) && totalUsers>0){barValues[barValues.length-1].val=newThisMonth>0?newThisMonth:totalUsers;}
+const maxVal=Math.max(...barValues.map(m=>m.val),1);
+let barHtml=''; barValues.forEach((m,i)=>{const h=Math.max((m.val/maxVal)*100, m.val>0?20:8); const isActive=i===barValues.length-1 && m.val>0; barHtml+=`<div class="bar-col"><div class="bar ${isActive?'active':''}" style="height:${h}%"></div><div class="bar-label">${m.name}</div><div class="bar-val">${m.val}</div></div>`;});
+if(barValues.every(b=>b.val===0)) barHtml=`<div style="width:100%;text-align:center;padding:40px;color:#8B8BA7">No signup data</div>`;
+const barEl=document.getElementById('barChart'); if(barEl) barEl.innerHTML=barHtml;
+const totalEntered=famCount+vehCount+invCount; const donutEl=document.getElementById('donutChart');
+if(totalEntered>0){
+ const famPct=Math.round((famCount/totalEntered)*100); const vehPct=Math.round((vehCount/totalEntered)*100);
+ donutEl.style.background=`conic-gradient(#4F46E5 0% ${famPct}%, #A5B4FC ${famPct}% ${famPct+vehPct}%, #6366F1 ${famPct+vehPct}% 100%)`;
+ document.getElementById('cityList').innerHTML=`<div class="city-row"><span><span class="city-dot" style="background:#4F46E5"></span>Families</span><span>${famPct}% <b>${famCount}</b></span></div><div class="city-row"><span><span class="city-dot" style="background:#A5B4FC"></span>Vehicles</span><span>${vehPct}% <b>${vehCount}</b></span></div>`;
+}
+const list=document.getElementById('adminUsersList'); if(list){list.innerHTML=''; for(const doc of userDocs){const uid=doc.id; const data=doc.data(); let expCount=0, expSum=0; try{const eSnap=await db.collection('users').doc(uid).collection('expenses').get(); expCount=eSnap.size; eSnap.forEach(d=>{expSum+=d.data().amount||0});}catch(e){} const row=document.createElement('div'); row.className='item'; row.style.cursor='pointer'; row.innerHTML=`<div><b>👤 ${data.displayName||data.email||uid}</b><div style="font-size:11px;color:#6B7280">${data.email||''} • Expenses: ${expCount} (₹${expSum})</div></div><div><span class="badge badge-purple">Review</span></div>`; row.onclick=()=>viewUserDetail(uid, data); list.appendChild(row);}}
+}catch(e){console.error(e)}
+}
+async function viewUserDetail(uid, meta){
+const card=document.getElementById('adminUserDetailCard'); if(card) card.style.display='block';
+const detail=document.getElementById('adminUserDetail'); if(detail) detail.innerHTML='Loading...';
+let html='';
+try{
+ const famSnap=await db.collection('users').doc(uid).collection('family').get(); const expSnap=await db.collection('users').doc(uid).collection('expenses').get(); const invSnap=await db.collection('users').doc(uid).collection('investments').get();
+ html+=`<div class="card"><h4>Family (${famSnap.size}) — Full Details</h4>`; famSnap.forEach(d=>{const f=d.data(); html+=`<div class="item" style="flex-direction:column;align-items:flex-start"><div><b>${f.name} (${f.relation})</b> • DOB: ${f.dob||''} • Blood: ${f.bloodGroup||''} • Mobile: ${f.mobile||''}<br>Medical: ${f.medicalHistory||''} • Allergies: ${f.allergies||''} • Doctor: ${f.doctorName||''}</div></div>`}); html+=`</div>`;
+ html+=`<div class="card"><h4>Expenses (${expSnap.size})</h4>`; expSnap.forEach(d=>{const e=d.data(); html+=`<div class="item"><div>${e.group} ${e.subGroup||''} ${e.vehicle? '🚗 '+e.vehicle:''} ₹${e.amount}</div></div>`}); html+=`</div>`;
+ html+=`<div class="card"><h4>Electronics (${(await db.collection('users').doc(uid).collection('electronics').get()).size}) — Warranty Years</h4>`; const elSnap=await db.collection('users').doc(uid).collection('electronics').get(); elSnap.forEach(d=>{const e=d.data(); html+=`<div class="item"><div>${e.type} ${e.brand} • Warranty: ${e.warrantyYears? e.warrantyYears+' years':''} ${e.warrantyEnd||''}</div></div>`}); html+=`</div>`;
+}catch(e){html='Error: '+e.message}
+if(detail) detail.innerHTML=html;
+}
+
+auth.onAuthStateChanged(async user=>{
+if(user){
+ currentUser=user;
+ const email=(user.email||'').toLowerCase();
+ const isAdmin=ADMIN_EMAILS.map(e=>e.toLowerCase()).includes(email);
+ document.getElementById('auth').style.display='none';
+ if(isAdmin){
+  document.getElementById('adminApp').style.display='block';
+  document.getElementById('userApp').style.display='none';
+  document.getElementById('aDdEmail').innerText=user.email+' (Admin — Locked)';
+  document.getElementById('saAvatar').innerText=user.email.substring(0,2).toUpperCase();
+  loadAdminUsers();
+ }else{
+  document.getElementById('userApp').style.display='block';
+  document.getElementById('adminApp').style.display='none';
+  document.getElementById('uDdEmail').innerText=user.email;
+  document.getElementById('uDdName').innerText=user.displayName||user.email.split('@')[0];
+  document.getElementById('uProfileBtn').innerText=(user.displayName||user.email)[0].toUpperCase();
+  document.getElementById('uAvatar').innerText=(user.displayName||user.email)[0].toUpperCase();
+  db.collection('users').doc(user.uid).set({email:user.email,displayName:user.displayName||user.email.split('@')[0],lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  loadUserData(); if(typeof loadOffice==="function") loadOffice(); if(typeof loadStaff==="function") loadStaff(); if(typeof loadSalary==="function") loadSalary(); if(typeof loadTasks==="function") loadTasks();
+ }
+}else{
+ document.getElementById('auth').style.display='flex';
+ document.getElementById('userApp').style.display='none';
+ document.getElementById('adminApp').style.display='none';
+}
+});
+function exportExcel(){const ws=XLSX.utils.json_to_sheet(family.map(f=>({name:f.name,relation:f.relation,dob:f.dob,gender:f.gender,bloodGroup:f.bloodGroup,mobile:f.mobile,medicalHistory:f.medicalHistory,allergies:f.allergies,doctorName:f.doctorName,insuranceCompany:f.insuranceCompany,insuranceExpiry:f.insuranceExpiry}))); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Family Full'); XLSX.writeFile(wb, 'FamilyOS_V8_12_Family.xlsx')}
+
+// === FIXED AUTH FUNCTIONS V8.16 — Google Login + Email Login + Forgot Password ===
+function showAuthMsg(msg, isError=true){
+  const el=document.getElementById('authMsg');
+  if(!el) return;
+  el.innerText=msg;
+  el.style.color=isError?'#EF4444':'#10B981';
+  el.style.display='block';
+  if(isError) el.style.background='#FEF2F2'; else el.style.background='#ECFDF5';
+  el.style.padding='8px 10px'; el.style.borderRadius='8px'; el.style.marginTop='10px';
+  el.style.border=isError?'1px solid #FECACA':'1px solid #A7F3D0';
+}
+
+function hideAuthMsg(){ const el=document.getElementById('authMsg'); if(el){ el.style.display='none'; el.innerText=''; } }
+
+async function handleLogin(){
+  const emailEl=document.getElementById('email');
+  const passEl=document.getElementById('password');
+  const e=(emailEl.value||'').trim();
+  const p=passEl.value||'';
+  if(!e){ showAuthMsg('Please enter email'); emailEl.focus(); return; }
+  if(!p){ showAuthMsg('Please enter password'); passEl.focus(); return; }
+  const btn=document.querySelector('button[onclick="handleLogin()"]');
+  const origText=btn?btn.innerText:'';
+  if(btn){ btn.disabled=true; btn.innerText='Logging in...'; btn.style.opacity='0.6'; }
+  hideAuthMsg();
+  try{
+    showAuthMsg('Checking credentials...', false);
+    const cred=await auth.signInWithEmailAndPassword(e,p);
+    showAuthMsg('✅ Login success: '+cred.user.email+' — Redirecting...', false);
+    console.log('Login success', cred.user.email);
+  }catch(err){
+    console.error('Login error', err);
+    let msg=err.message||err.code;
+    if(err.code==='auth/user-not-found') msg='No account found for '+e+'. Please Create Account first.';
+    else if(err.code==='auth/wrong-password') msg='Wrong password for '+e+'. Try Forgot Password.';
+    else if(err.code==='auth/invalid-email') msg='Invalid email format.';
+    else if(err.code==='auth/too-many-requests') msg='Too many attempts. Try later or reset password.';
+    showAuthMsg('Login failed: '+msg, true);
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerText=origText||'Login'; btn.style.opacity='1'; }
+  }
+}
+
+async function handleGoogle(){
+  const prov=new firebase.auth.GoogleAuthProvider();
+  prov.setCustomParameters({prompt:'select_account'});
+  const btn=document.querySelector('button[onclick="handleGoogle()"]');
+  const orig=btn?btn.innerText:'';
+  if(btn){ btn.disabled=true; btn.innerText='Opening Google...'; }
+  showAuthMsg('Opening Google login popup...', false);
+  try{
+    const res=await auth.signInWithPopup(prov);
+    showAuthMsg('✅ Google login success: '+res.user.email+' — Redirecting...', false);
+    console.log('Google login success', res.user.email);
+  }catch(err){
+    console.error('Google popup error', err.code, err.message);
+    if(err.code==='auth/popup-blocked' || err.code==='auth/popup-closed-by-user' || err.code==='auth/cancelled-popup-request' || err.code==='auth/operation-not-supported-in-this-environment' || err.code==='auth/popup-closed-by-user'){
+      showAuthMsg('Popup blocked or closed, trying redirect method...', false);
+      try{
+        await auth.signInWithRedirect(prov);
+      }catch(e2){
+        showAuthMsg('Google redirect failed: '+(e2.message||e2.code)+' — Enable Google in Firebase Console > Auth > Sign-in method', true);
+        if(btn){ btn.disabled=false; btn.innerText=orig||'🔵 Google Login'; }
+      }
+      return;
+    }
+    let msg=err.message||err.code;
+    if(err.code==='auth/unauthorized-domain') msg+=' — Add domain glowing-panda-9fea1b.netlify.app in Firebase Console > Authentication > Settings > Authorized domains';
+    if(err.code==='auth/operation-not-allowed') msg+=' — Enable Google provider in Firebase Console > Authentication > Sign-in method > Google > Enable';
+    showAuthMsg('Google login failed: '+msg, true);
+    if(btn){ btn.disabled=false; btn.innerText=orig||'🔵 Google Login'; }
+  }
+}
+
+// Handle redirect result (for mobile)
+auth.getRedirectResult().then((result)=>{
+  if(result && result.user){
+    showAuthMsg('✅ Google login success (redirect): '+result.user.email, false);
+  }
+}).catch(err=>{
+  console.error('Redirect result error', err);
+  showAuthMsg('Google redirect error: '+(err.message||err.code), true);
+});
+
+async function handleForgotPassword(){
+  const emailEl=document.getElementById('forgotEmail');
+  const e=(emailEl?emailEl.value:document.getElementById('email').value||'').trim();
+  if(!e){ showAuthMsg('Please enter your email in forgot box', true); if(emailEl) emailEl.focus(); return; }
+  const btn=document.getElementById('forgotBtn');
+  const orig=btn?btn.innerText:'';
+  if(btn){ btn.disabled=true; btn.innerText='Sending...'; }
+  try{
+    await auth.sendPasswordResetEmail(e);
+    showAuthMsg('✅ Password reset email sent to '+e+'. Check inbox & spam. Link valid 1 hour.', false);
+    document.getElementById('forgotMsg').innerText='✅ Reset link sent to '+e;
+    document.getElementById('forgotMsg').style.color='#10B981';
+  }catch(err){
+    console.error('Forgot error', err);
+    let msg=err.message||err.code;
+    if(err.code==='auth/user-not-found') msg='No account found for '+e;
+    if(err.code==='auth/invalid-email') msg='Invalid email';
+    showAuthMsg('Reset failed: '+msg, true);
+    const fm=document.getElementById('forgotMsg');
+    if(fm){ fm.innerText='❌ '+msg; fm.style.color='#EF4444'; }
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerText=orig||'Send Reset Link'; }
+  }
+}
+
+
+
+// === OFFICE EXPENSES TAB — NEW — Independent, does not touch old V8.18 code — Monthly Review + Form Clear Fix ===
+let officeExpenses=[], officeFilter='all';
+function openOfficeModal(editId=null){
+  const modal=document.getElementById('officeModal');
+  if(modal) modal.classList.add('show');
+  const famSel=document.getElementById('offFamily');
+  if(famSel){
+    famSel.innerHTML='<option value="">-- General / Optional --</option>';
+    if(typeof family!=='undefined' && family.length>0){
+      family.forEach(f=>{ const o=document.createElement('option'); o.value=f.name; o.text=f.name+' ('+f.relation+')'; famSel.appendChild(o); });
+    }
+  }
+  const msgEl=document.getElementById('offMsg');
+  if(msgEl) msgEl.innerText='';
+  if(editId){
+    const oe=officeExpenses.find(x=>x.id===editId);
+    if(oe){
+      document.getElementById('offHead').value=oe.head||'Rent';
+      document.getElementById('offAmount').value=oe.amount||'';
+      document.getElementById('offDate').value=oe.date||'';
+      document.getElementById('offNote').value=oe.note||'';
+      document.getElementById('offFamily').value=oe.familyMember||'';
+      document.getElementById('officeModal').dataset.editId=editId;
+    }
+  } else {
+    // FIX: Clear form completely when adding new entry — old data will NOT show again
+    delete document.getElementById('officeModal').dataset.editId;
+    document.getElementById('offHead').value='Rent';
+    document.getElementById('offAmount').value='';
+    document.getElementById('offDate').valueAsDate=new Date();
+    document.getElementById('offNote').value='';
+    document.getElementById('offFamily').value='';
+    if(msgEl) msgEl.innerText='';
+  }
+}
+function closeOfficeModal(){
+  const modal=document.getElementById('officeModal');
+  if(modal) modal.classList.remove('show');
+  // FIX: Clear form when closing — ensures next open is fresh
+  delete document.getElementById('officeModal').dataset.editId;
+  const msgEl=document.getElementById('offMsg');
+  if(msgEl) msgEl.innerText='';
+}
+function filterOffice(type){
+  officeFilter=type;
+  document.querySelectorAll('#officeTabs .tab').forEach(b=>b.classList.remove('active'));
+  const activeBtn=document.querySelector(`#officeTabs .tab[data-off="${type}"]`);
+  if(activeBtn) activeBtn.classList.add('active');
+  renderOffice();
+}
+function renderOffice(){
+  const list=document.getElementById('officeList');
+  const tabs=document.getElementById('officeTabs');
+  const monthFilterEl=document.getElementById('offMonthFilter');
+  const yearFilterEl=document.getElementById('offYearFilter');
+  if(!list) return;
+  
+  let filtered=officeExpenses;
+  
+  // Apply head filter
+  if(officeFilter!=='all') filtered=filtered.filter(e=>e.head===officeFilter);
+  
+  // Apply month/year filter
+  const monthFilter=monthFilterEl?monthFilterEl.value:'all';
+  const yearFilter=yearFilterEl?yearFilterEl.value:'all';
+  const now=new Date();
+  const thisMonth=now.getMonth();
+  const thisYear=now.getFullYear();
+  const lastMonthDate=new Date(); lastMonthDate.setMonth(thisMonth-1);
+  const lastMonth=lastMonthDate.getMonth();
+  const lastMonthYear=lastMonthDate.getFullYear();
+  
+  if(monthFilter==='thisMonth'){
+    filtered=filtered.filter(e=>{ const d=new Date(e.date); return d.getMonth()===thisMonth && d.getFullYear()===thisYear; });
+  } else if(monthFilter==='lastMonth'){
+    filtered=filtered.filter(e=>{ const d=new Date(e.date); return d.getMonth()===lastMonth && d.getFullYear()===lastMonthYear; });
+  } else if(monthFilter==='thisYear'){
+    filtered=filtered.filter(e=>{ const d=new Date(e.date); return d.getFullYear()===thisYear; });
+  }
+  
+  if(yearFilter!=='all'){
+    filtered=filtered.filter(e=>{ const d=new Date(e.date); return d.getFullYear().toString()===yearFilter; });
+  }
+  
+  // Update KPI
+  updateOfficeKPI();
+  renderMonthlyBreakdown();
+  updateYearFilterOptions();
+  
+  // Update all count
+  const allTab=document.querySelector('#officeTabs .tab[data-off="all"]');
+  if(allTab) allTab.innerText='All Office ('+filtered.length+')';
+  
+  list.innerHTML='';
+  if(filtered.length===0){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:#8B8BA7;font-size:13px">No office expenses for '+officeFilter+' + '+(monthFilter!=='all'?monthFilter:'all months')+'. Click + Add Office Expense to add Deposit, Rent, Salary, Maintenance, Water Exp etc.</div>';
+    return;
+  }
+  filtered.sort((a,b)=> new Date(b.date)-new Date(a.date));
+  filtered.forEach(e=>{
+    const div=document.createElement('div');
+    div.className='item';
+    div.innerHTML=`<div><b>🏢 ${e.head} — ₹${e.amount}</b><div style="font-size:11px;color:#6B7280">${e.date} • ${e.note||''} ${e.familyMember? '• '+e.familyMember:''}</div></div><div><button class="action-btn edit" onclick="openOfficeModal('${e.id}')">Edit</button><button class="action-btn delete" onclick="deleteOffice('${e.id}')">Delete</button></div>`;
+    list.appendChild(div);
+  });
+}
+function updateOfficeKPI(){
+  const now=new Date();
+  const thisMonth=now.getMonth();
+  const thisYear=now.getFullYear();
+  const lastMonthDate=new Date(); lastMonthDate.setMonth(thisMonth-1);
+  const lastMonth=lastMonthDate.getMonth();
+  const lastMonthYear=lastMonthDate.getFullYear();
+  
+  let thisMonthTotal=0, thisMonthCount=0;
+  let lastMonthTotal=0, lastMonthCount=0;
+  let thisYearTotal=0, thisYearCount=0;
+  let total=0;
+  
+  officeExpenses.forEach(e=>{
+    const amt=e.amount||0;
+    const d=new Date(e.date);
+    total+=amt;
+    if(d.getMonth()===thisMonth && d.getFullYear()===thisYear){ thisMonthTotal+=amt; thisMonthCount++; }
+    if(d.getMonth()===lastMonth && d.getFullYear()===lastMonthYear){ lastMonthTotal+=amt; lastMonthCount++; }
+    if(d.getFullYear()===thisYear){ thisYearTotal+=amt; thisYearCount++; }
+  });
+  
+  const el1=document.getElementById('offKpiThisMonth');
+  if(el1){ el1.innerText='₹'+thisMonthTotal.toLocaleString(); }
+  const el1c=document.getElementById('offKpiThisMonthCount');
+  if(el1c){ el1c.innerText=thisMonthCount+' entries'; }
+  
+  const el2=document.getElementById('offKpiLastMonth');
+  if(el2){ el2.innerText='₹'+lastMonthTotal.toLocaleString(); }
+  const el2c=document.getElementById('offKpiLastMonthCount');
+  if(el2c){ el2c.innerText=lastMonthCount+' entries'; }
+  
+  const el3=document.getElementById('offKpiThisYear');
+  if(el3){ el3.innerText='₹'+thisYearTotal.toLocaleString(); }
+  const el3c=document.getElementById('offKpiThisYearCount');
+  if(el3c){ el3c.innerText=thisYearCount+' entries'; }
+  
+  const el4=document.getElementById('offKpiTotal');
+  if(el4){ el4.innerText='₹'+total.toLocaleString(); }
+  const el4c=document.getElementById('offKpiTotalCount');
+  if(el4c){ el4c.innerText=officeExpenses.length+' entries'; }
+}
+function renderMonthlyBreakdown(){
+  const tableEl=document.getElementById('officeMonthlyTable');
+  if(!tableEl) return;
+  
+  // Group by month-year
+  const grouped={};
+  officeExpenses.forEach(e=>{
+    const d=new Date(e.date);
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const label=d.toLocaleString('default',{month:'long', year:'numeric'});
+    if(!grouped[key]) grouped[key]={label, total:0, count:0, heads:{}};
+    grouped[key].total+=e.amount||0;
+    grouped[key].count++;
+    const head=e.head||'Other';
+    if(!grouped[key].heads[head]) grouped[key].heads[head]=0;
+    grouped[key].heads[head]+=e.amount||0;
+  });
+  
+  const sortedKeys=Object.keys(grouped).sort().reverse();
+  
+  if(sortedKeys.length===0){
+    tableEl.innerHTML='<div style="font-size:12px;color:#8B8BA7">No data yet — Add office expenses to see monthly review</div>';
+    return;
+  }
+  
+  let html='<div style="display:flex;flex-direction:column;gap:8px">';
+  sortedKeys.slice(0,12).forEach(key=>{
+    const g=grouped[key];
+    let headsStr=Object.entries(g.heads).map(([h, amt])=> `${h}: ₹${amt.toLocaleString()}`).join(' • ');
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff;border:1px solid #EFEAFD;border-radius:10px"><div><b style="font-size:13px">${g.label}</b><div style="font-size:11px;color:#6B7280;margin-top:2px">${g.count} entries • ${headsStr}</div></div><div style="text-align:right"><div style="font-weight:800;font-size:14px">₹${g.total.toLocaleString()}</div><div style="font-size:10px;color:#6B7280">Total</div></div></div>`;
+  });
+  html+='</div>';
+  tableEl.innerHTML=html;
+}
+function updateYearFilterOptions(){
+  const yearFilterEl=document.getElementById('offYearFilter');
+  if(!yearFilterEl) return;
+  const years=[...new Set(officeExpenses.map(e=> new Date(e.date).getFullYear()))].sort().reverse();
+  const currentVal=yearFilterEl.value;
+  yearFilterEl.innerHTML='<option value="all">All Years</option>';
+  years.forEach(y=>{
+    const opt=document.createElement('option');
+    opt.value=y.toString();
+    opt.innerText=y.toString();
+    yearFilterEl.appendChild(opt);
+  });
+  if(currentVal && [...yearFilterEl.options].some(o=>o.value===currentVal)){
+    yearFilterEl.value=currentVal;
+  }
+}
+function exportOfficeExcel(){
+  if(officeExpenses.length===0){ alert('No office expenses to export'); return; }
+  const data=officeExpenses.map(e=>({Date:e.date, Head:e.head, Amount:e.amount, Note:e.note||'', Family:e.familyMember||''}));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Office Expenses');
+  XLSX.writeFile(wb, 'Office_Expenses_'+new Date().toISOString().split('T')[0]+'.xlsx');
+}
+async function loadOffice(){
+  if(!currentUser) return;
+  try{
+    const snap=await db.collection('users').doc(currentUser.uid).collection('officeExpenses').orderBy('date','desc').get();
+    officeExpenses=snap.docs.map(d=>d.data());
+    renderOffice();
+  }catch(e){ console.log('loadOffice error', e); }
+}
+async function saveOffice(){
+  const head=document.getElementById('offHead').value;
+  const amount=parseFloat(document.getElementById('offAmount').value);
+  const date=document.getElementById('offDate').value;
+  const note=document.getElementById('offNote').value;
+  const fam=document.getElementById('offFamily').value;
+  const msgEl=document.getElementById('offMsg');
+  if(!head || !amount || !date){ if(msgEl){ msgEl.innerText='Please fill Head, Amount, Date'; msgEl.style.color='#EF4444'; } return; }
+  if(!currentUser){ if(msgEl){ msgEl.innerText='Not logged in'; msgEl.style.color='#EF4444'; } return; }
+  const editId=document.getElementById('officeModal').dataset.editId;
+  const data={head, amount, date, note, familyMember:fam, updated: firebase.firestore.FieldValue.serverTimestamp()};
+  try{
+    if(editId){
+      await db.collection('users').doc(currentUser.uid).collection('officeExpenses').doc(editId).update(data);
+    } else {
+      const id='off_'+Date.now();
+      data.id=id; data.created=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('users').doc(currentUser.uid).collection('officeExpenses').doc(id).set(data);
+    }
+    // FIX: Clear form completely after save — old data will NOT show again
+    delete document.getElementById('officeModal').dataset.editId;
+    document.getElementById('offHead').value='Rent';
+    document.getElementById('offAmount').value='';
+    document.getElementById('offDate').valueAsDate=new Date();
+    document.getElementById('offNote').value='';
+    document.getElementById('offFamily').value='';
+    if(msgEl){ msgEl.innerText='✅ Saved! Form cleared for next entry'; msgEl.style.color='#10B981'; setTimeout(()=>{ if(msgEl) msgEl.innerText=''; }, 2000); }
+    closeOfficeModal();
+    loadOffice();
+  }catch(e){ if(msgEl){ msgEl.innerText='Error: '+e.message; msgEl.style.color='#EF4444'; } }
+}
+async function deleteOffice(id){
+  if(!confirm('Delete office expense?')) return;
+  await db.collection('users').doc(currentUser.uid).collection('officeExpenses').doc(id).delete();
+  loadOffice();
+}
+
+
+
+
+// === PROFESSIONAL BUSINESS CLASS — STAFF, SALARY, CONVEYANCE, TASK ASSIGNMENT, DAILY MONITORING ===
+let staff=[], salaryRecords=[], tasks=[];
+let staffFilter='all', salaryFilter='all', taskFilter='all';
+
+function openStaffModal(editId=null){
+  const modal=document.getElementById('staffModal');
+  if(modal) modal.classList.add('show');
+  const errEl=document.getElementById('staffErrorMsg'); if(errEl) errEl.style.display='none';
+  if(editId){
+    const s=staff.find(x=>x.id===editId);
+    if(s){
+      document.getElementById('stName').value=s.name||'';
+      document.getElementById('stRole').value=s.role||'Field Staff';
+      document.getElementById('stMobile').value=s.mobile||'';
+      document.getElementById('stEmail').value=s.email||'';
+      document.getElementById('stJoinDate').value=s.joinDate||'';
+      document.getElementById('stSalary').value=s.salary||'';
+      document.getElementById('stStatus').value=s.status||'Active';
+      document.getElementById('stDepartment').value=s.department||'';
+      document.getElementById('stAddress').value=s.address||'';
+      document.getElementById('stAadhaar').value=s.aadhaar||'';
+      document.getElementById('stBank').value=s.bank||'';
+      document.getElementById('stNotes').value=s.notes||'';
+      modal.dataset.editId=editId;
+    }
+  } else {
+    delete modal.dataset.editId;
+    ['stName','stMobile','stEmail','stJoinDate','stSalary','stDepartment','stAddress','stAadhaar','stBank','stNotes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('stJoinDate').valueAsDate=new Date();
+  }
+}
+function filterStaff(type){
+  staffFilter=type;
+  document.querySelectorAll('#staffTabs .tab').forEach(b=>b.classList.remove('active'));
+  const btn=document.querySelector(`#staffTabs .tab[data-staff="${type}"]`);
+  if(btn) btn.classList.add('active');
+  renderStaff();
+}
+function renderStaff(){
+  const list=document.getElementById('staffList');
+  if(!list) return;
+  let filtered=staff;
+  if(staffFilter==='active' || staffFilter==='inactive') filtered=staff.filter(s=> (s.status||'Active').toLowerCase()===staffFilter);
+  else if(staffFilter!=='all') filtered=staff.filter(s=> s.role===staffFilter || s.status===staffFilter);
+  
+  // Update KPI
+  const totalActive=staff.filter(s=> (s.status||'Active')==='Active').length;
+  const totalSalary=staff.filter(s=> (s.status||'Active')==='Active').reduce((sum,s)=> sum+(parseFloat(s.salary)||0), 0);
+  const pendingTasks=tasks.filter(t=> t.status!=='Completed').length;
+  const todayConv=salaryRecords.filter(r=>{ const d=new Date(r.date); const now=new Date(); return r.type==='Conveyance' && d.toDateString()===now.toDateString(); }).reduce((sum,r)=> sum+(parseFloat(r.amount)||0),0);
+  
+  const kpi1=document.getElementById('staffKpiTotal'); if(kpi1) kpi1.innerText=totalActive;
+  const kpi2=document.getElementById('staffKpiSalary'); if(kpi2) kpi2.innerText='₹'+totalSalary.toLocaleString();
+  const kpi3=document.getElementById('staffKpiTasks'); if(kpi3) kpi3.innerText=pendingTasks;
+  const kpi4=document.getElementById('staffKpiConv'); if(kpi4) kpi4.innerText='₹'+todayConv.toLocaleString();
+  
+  const allTab=document.querySelector('#staffTabs .tab[data-staff="all"]');
+  if(allTab) allTab.innerText='All Staff ('+staff.length+')';
+  
+  list.innerHTML='';
+  if(filtered.length===0){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:#8B8BA7">No staff for '+staffFilter+'. Click + Add Staff to maintain staff, salary, rent, conveyance</div>';
+    return;
+  }
+  filtered.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='item';
+    div.innerHTML=`<div><b>👤 ${s.name} — ${s.role||''} — ${s.status||'Active'}</b><div style="font-size:11px;color:#6B7280">📱 ${s.mobile||''} • 💰 ₹${s.salary||0}/month • Joined: ${s.joinDate||''} • ${s.department||''}</div><div style="font-size:11px;color:#6B7280">${s.email||''} ${s.address?'• 📍 '+s.address:''}</div></div><div><button class="action-btn edit" onclick="openStaffModal('${s.id}')">Edit</button><button class="action-btn delete" onclick="deleteStaff('${s.id}')">Delete</button></div>`;
+    list.appendChild(div);
+  });
+  updateStaffDropdowns();
+}
+function updateStaffDropdowns(){
+  const staffOpts=staff.filter(s=> (s.status||'Active')==='Active');
+  // Salary staff filter
+  const salStaffSel=document.getElementById('salStaff');
+  const salFilterSel=document.getElementById('salaryStaffFilter');
+  const taskStaffSel=document.getElementById('taskStaff');
+  const taskFilterSel=document.getElementById('taskStaffFilter');
+  
+  [salStaffSel, salFilterSel, taskStaffSel, taskFilterSel].forEach(sel=>{
+    if(!sel) return;
+    const isFilter=sel.id.includes('Filter');
+    const currentVal=sel.value;
+    if(isFilter){
+      sel.innerHTML='<option value="all">All Staff</option>';
+    } else {
+      sel.innerHTML='<option value="">Select Staff *</option>';
+    }
+    staffOpts.forEach(s=>{
+      const o=document.createElement('option');
+      o.value=s.name;
+      o.textContent=s.name+' ('+s.role+')';
+      sel.appendChild(o);
+    });
+    if(currentVal && [...sel.options].some(o=>o.value===currentVal)) sel.value=currentVal;
+  });
+}
+async function loadStaff(){
+  if(!currentUser) return;
+  try{
+    const snap=await db.collection('users').doc(currentUser.uid).collection('staff').orderBy('name').get();
+    staff=snap.docs.map(d=>d.data());
+    renderStaff();
+  }catch(e){ console.log('loadStaff error', e); }
+}
+async function saveStaff(){
+  try{
+    const name=document.getElementById('stName').value.trim();
+    const mobile=document.getElementById('stMobile').value.trim();
+    const salary=parseFloat(document.getElementById('stSalary').value);
+    const errEl=document.getElementById('staffErrorMsg');
+    if(errEl) errEl.style.display='none';
+    if(!name){ if(errEl){ errEl.innerText='⚠️ Staff Name is mandatory'; errEl.style.display='block'; } return; }
+    if(!mobile){ if(errEl){ errEl.innerText='⚠️ Mobile is mandatory'; errEl.style.display='block'; } return; }
+    if(!salary || salary<=0){ if(errEl){ errEl.innerText='⚠️ Monthly Salary is mandatory'; errEl.style.display='block'; } return; }
+    const data={
+      name,
+      role:document.getElementById('stRole').value,
+      mobile,
+      email:document.getElementById('stEmail').value,
+      joinDate:document.getElementById('stJoinDate').value,
+      salary,
+      status:document.getElementById('stStatus').value,
+      department:document.getElementById('stDepartment').value,
+      address:document.getElementById('stAddress').value,
+      aadhaar:document.getElementById('stAadhaar').value,
+      bank:document.getElementById('stBank').value,
+      notes:document.getElementById('stNotes').value,
+      updated:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    const editId=document.getElementById('staffModal').dataset.editId;
+    if(editId){
+      await db.collection('users').doc(currentUser.uid).collection('staff').doc(editId).update(data);
+    } else {
+      const id='staff_'+Date.now();
+      data.id=id; data.created=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('users').doc(currentUser.uid).collection('staff').doc(id).set(data);
+    }
+    closeModals(); delete document.getElementById('staffModal').dataset.editId;
+    loadStaff();
+  }catch(e){ console.error('saveStaff error', e); const errEl=document.getElementById('staffErrorMsg'); if(errEl){ errEl.innerText='❌ Save failed: '+e.message; errEl.style.display='block'; } }
+}
+async function deleteStaff(id){
+  if(!confirm('Delete staff? All salary and task records will remain but staff will be removed.')) return;
+  await db.collection('users').doc(currentUser.uid).collection('staff').doc(id).delete();
+  loadStaff();
+}
+
+// === SALARY MANAGEMENT ===
+function openSalaryModal(editId=null){
+  const modal=document.getElementById('salaryModal');
+  if(modal) modal.classList.add('show');
+  updateStaffDropdowns();
+  const errEl=document.getElementById('salaryErrorMsg'); if(errEl) errEl.style.display='none';
+  if(editId){
+    const s=salaryRecords.find(x=>x.id===editId);
+    if(s){
+      document.getElementById('salStaff').value=s.staffName||'';
+      document.getElementById('salType').value=s.type||'Salary';
+      document.getElementById('salAmount').value=s.amount||'';
+      document.getElementById('salDate').value=s.date||'';
+      document.getElementById('salMonth').value=s.month||'';
+      document.getElementById('salAdvance').value=s.advance||'';
+      document.getElementById('salDeduction').value=s.deduction||'';
+      document.getElementById('salNote').value=s.note||'';
+      modal.dataset.editId=editId;
+    }
+  } else {
+    delete modal.dataset.editId;
+    document.getElementById('salAmount').value=''; document.getElementById('salDate').valueAsDate=new Date(); document.getElementById('salMonth').value=new Date().toISOString().slice(0,7); document.getElementById('salNote').value=''; document.getElementById('salAdvance').value=''; document.getElementById('salDeduction').value='';
+  }
+}
+function filterSalary(type){
+  salaryFilter=type;
+  document.querySelectorAll('#salaryTabs .tab').forEach(b=>b.classList.remove('active'));
+  const btn=document.querySelector(`#salaryTabs .tab[data-sal="${type}"]`);
+  if(btn) btn.classList.add('active');
+  renderSalary();
+}
+function renderSalary(){
+  const list=document.getElementById('salaryList');
+  if(!list) return;
+  let filtered=salaryRecords;
+  if(salaryFilter!=='all') filtered=salaryRecords.filter(r=> r.type===salaryFilter);
+  const monthFilter=document.getElementById('salaryMonthFilter')?.value||'all';
+  const staffFilterVal=document.getElementById('salaryStaffFilter')?.value||'all';
+  const now=new Date();
+  if(monthFilter==='thisMonth'){
+    filtered=filtered.filter(r=>{ const d=new Date(r.date); return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear(); });
+  } else if(monthFilter==='lastMonth'){
+    const last=new Date(); last.setMonth(now.getMonth()-1);
+    filtered=filtered.filter(r=>{ const d=new Date(r.date); return d.getMonth()===last.getMonth() && d.getFullYear()===last.getFullYear(); });
+  }
+  if(staffFilterVal!=='all'){
+    filtered=filtered.filter(r=> r.staffName===staffFilterVal);
+  }
+  const allTab=document.querySelector('#salaryTabs .tab[data-sal="all"]');
+  if(allTab) allTab.innerText='All ('+filtered.length+')';
+  
+  // Monthly summary
+  const grouped={};
+  salaryRecords.forEach(r=>{
+    const d=new Date(r.date);
+    const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(!grouped[key]) grouped[key]={total:0, salary:0, conveyance:0, advance:0, count:0, label:d.toLocaleString('default',{month:'long', year:'numeric'})};
+    grouped[key].total+=r.amount||0;
+    if(r.type==='Salary') grouped[key].salary+=r.amount||0;
+    if(r.type==='Conveyance') grouped[key].conveyance+=r.amount||0;
+    if(r.type==='Advance') grouped[key].advance+=r.amount||0;
+    grouped[key].count++;
+  });
+  const summaryEl=document.getElementById('salaryMonthlyTable');
+  if(summaryEl){
+    const keys=Object.keys(grouped).sort().reverse().slice(0,6);
+    if(keys.length===0) summaryEl.innerHTML='<div style="font-size:12px;color:#8B8BA7">No salary data</div>';
+    else {
+      let html='<div style="display:flex;flex-direction:column;gap:6px">';
+      keys.forEach(k=>{
+        const g=grouped[k];
+        html+=`<div style="display:flex;justify-content:space-between;padding:8px;background:#fff;border:1px solid #EFEAFD;border-radius:10px"><div><b>${g.label}</b><div style="font-size:11px;color:#6B7280">${g.count} entries • Salary: ₹${g.salary.toLocaleString()} • Conv: ₹${g.conveyance.toLocaleString()} • Adv: ₹${g.advance.toLocaleString()}</div></div><div style="font-weight:800">₹${g.total.toLocaleString()}</div></div>`;
+      });
+      html+='</div>';
+      summaryEl.innerHTML=html;
+    }
+  }
+  
+  list.innerHTML='';
+  if(filtered.length===0){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:#8B8BA7">No salary/conveyance records for '+salaryFilter+'. Click + Add Salary / Conveyance</div>';
+    return;
+  }
+  filtered.sort((a,b)=> new Date(b.date)-new Date(a.date));
+  filtered.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='item';
+    div.innerHTML=`<div><b>💰 ${r.staffName} — ${r.type} — ₹${r.amount}</b><div style="font-size:11px;color:#6B7280">${r.date} • Month: ${r.month||''} • Adv: ₹${r.advance||0} • Ded: ₹${r.deduction||0} • ${r.note||''}</div></div><div><button class="action-btn edit" onclick="openSalaryModal('${r.id}')">Edit</button><button class="action-btn delete" onclick="deleteSalary('${r.id}')">Delete</button></div>`;
+    list.appendChild(div);
+  });
+}
+async function loadSalary(){
+  if(!currentUser) return;
+  try{
+    const snap=await db.collection('users').doc(currentUser.uid).collection('salaryRecords').orderBy('date','desc').get();
+    salaryRecords=snap.docs.map(d=>d.data());
+    renderSalary();
+  }catch(e){ console.log('loadSalary error', e); }
+}
+async function saveSalary(){
+  try{
+    const staffName=document.getElementById('salStaff').value;
+    const amount=parseFloat(document.getElementById('salAmount').value);
+    const date=document.getElementById('salDate').value;
+    const errEl=document.getElementById('salaryErrorMsg');
+    if(errEl) errEl.style.display='none';
+    if(!staffName){ if(errEl){ errEl.innerText='⚠️ Select Staff'; errEl.style.display='block'; } return; }
+    if(!amount || amount<=0){ if(errEl){ errEl.innerText='⚠️ Enter Amount'; errEl.style.display='block'; } return; }
+    if(!date){ if(errEl){ errEl.innerText='⚠️ Select Date'; errEl.style.display='block'; } return; }
+    const data={
+      staffName,
+      type:document.getElementById('salType').value,
+      amount,
+      date,
+      month:document.getElementById('salMonth').value,
+      advance:parseFloat(document.getElementById('salAdvance').value)||0,
+      deduction:parseFloat(document.getElementById('salDeduction').value)||0,
+      note:document.getElementById('salNote').value,
+      updated:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    data.netPayable=(data.amount||0)-(data.advance||0)-(data.deduction||0);
+    const editId=document.getElementById('salaryModal').dataset.editId;
+    if(editId){
+      await db.collection('users').doc(currentUser.uid).collection('salaryRecords').doc(editId).update(data);
+    } else {
+      const id='sal_'+Date.now();
+      data.id=id; data.created=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('users').doc(currentUser.uid).collection('salaryRecords').doc(id).set(data);
+    }
+    closeModals(); delete document.getElementById('salaryModal').dataset.editId;
+    loadSalary(); renderStaff();
+  }catch(e){ console.error('saveSalary error', e); const errEl=document.getElementById('salaryErrorMsg'); if(errEl){ errEl.innerText='❌ Save failed: '+e.message; errEl.style.display='block'; } }
+}
+async function deleteSalary(id){
+  if(!confirm('Delete salary/conveyance record?')) return;
+  await db.collection('users').doc(currentUser.uid).collection('salaryRecords').doc(id).delete();
+  loadSalary();
+}
+function exportSalaryExcel(){
+  if(salaryRecords.length===0){ alert('No salary records'); return; }
+  const data=salaryRecords.map(r=>({Date:r.date, Month:r.month, Staff:r.staffName, Type:r.type, Amount:r.amount, Advance:r.advance||0, Deduction:r.deduction||0, Net:r.netPayable||r.amount, Note:r.note||''}));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Salary');
+  XLSX.writeFile(wb, 'Salary_Conveyance_'+new Date().toISOString().split('T')[0]+'.xlsx');
+}
+
+// === TASK ASSIGNMENT & DAILY MONITORING ===
+function openTaskModal(editId=null){
+  const modal=document.getElementById('taskModal');
+  if(modal) modal.classList.add('show');
+  updateStaffDropdowns();
+  const errEl=document.getElementById('taskErrorMsg'); if(errEl) errEl.style.display='none';
+  if(editId){
+    const t=tasks.find(x=>x.id===editId);
+    if(t){
+      document.getElementById('taskTitle').value=t.title||'';
+      document.getElementById('taskDesc').value=t.description||'';
+      document.getElementById('taskStaff').value=t.staffName||'';
+      document.getElementById('taskPriority').value=t.priority||'Medium';
+      document.getElementById('taskStatus').value=t.status||'Pending';
+      document.getElementById('taskDueDate').value=t.dueDate||'';
+      document.getElementById('taskClient').value=t.clientName||'';
+      document.getElementById('taskClientContact').value=t.clientContact||'';
+      document.getElementById('taskLocation').value=t.location||'';
+      document.getElementById('taskEstimatedHours').value=t.estimatedHours||'';
+      modal.dataset.editId=editId;
+    }
+  } else {
+    delete modal.dataset.editId;
+    ['taskTitle','taskDesc','taskClient','taskClientContact','taskLocation','taskEstimatedHours'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('taskDueDate').valueAsDate=new Date();
+    document.getElementById('taskStatus').value='Pending';
+  }
+}
+function filterTasks(type){
+  taskFilter=type;
+  document.querySelectorAll('#taskTabs .tab').forEach(b=>b.classList.remove('active'));
+  const btn=document.querySelector(`#taskTabs .tab[data-task="${type}"]`);
+  if(btn) btn.classList.add('active');
+  renderTasks();
+}
+function renderTasks(){
+  const list=document.getElementById('taskList');
+  if(!list) return;
+  let filtered=tasks;
+  if(taskFilter==='Pending' || taskFilter==='In Progress' || taskFilter==='Completed'){
+    filtered=tasks.filter(t=> t.status===taskFilter);
+  } else if(taskFilter==='Today'){
+    const today=new Date().toISOString().split('T')[0];
+    filtered=tasks.filter(t=> t.dueDate===today);
+  }
+  const statusFilter=document.getElementById('taskStatusFilter')?.value||'all';
+  const staffFilterVal=document.getElementById('taskStaffFilter')?.value||'all';
+  const priorityFilter=document.getElementById('taskPriorityFilter')?.value||'all';
+  const dateFilter=document.getElementById('taskDateFilter')?.value||'';
+  
+  if(statusFilter!=='all') filtered=filtered.filter(t=> t.status===statusFilter);
+  if(staffFilterVal!=='all') filtered=filtered.filter(t=> t.staffName===staffFilterVal);
+  if(priorityFilter!=='all') filtered=filtered.filter(t=> t.priority===priorityFilter);
+  if(dateFilter) filtered=filtered.filter(t=> t.dueDate===dateFilter);
+  
+  // KPI
+  const total=tasks.length;
+  const pending=tasks.filter(t=> t.status==='Pending').length;
+  const progress=tasks.filter(t=> t.status==='In Progress').length;
+  const completed=tasks.filter(t=> t.status==='Completed').length;
+  
+  const k1=document.getElementById('taskKpiTotal'); if(k1) k1.innerText=total;
+  const k2=document.getElementById('taskKpiPending'); if(k2) k2.innerText=pending;
+  const k3=document.getElementById('taskKpiProgress'); if(k3) k3.innerText=progress;
+  const k4=document.getElementById('taskKpiCompleted'); if(k4) k4.innerText=completed;
+  
+  const allTab=document.querySelector('#taskTabs .tab[data-task="all"]');
+  if(allTab) allTab.innerText='All Tasks ('+filtered.length+')';
+  
+  // Daily monitoring
+  const monitoringEl=document.getElementById('taskDailyMonitoring');
+  if(monitoringEl){
+    const groupedByStaff={};
+    tasks.forEach(t=>{
+      const staffName=t.staffName||'Unassigned';
+      if(!groupedByStaff[staffName]) groupedByStaff[staffName]={total:0, pending:0, progress:0, completed:0, overdue:0};
+      groupedByStaff[staffName].total++;
+      if(t.status==='Pending') groupedByStaff[staffName].pending++;
+      else if(t.status==='In Progress') groupedByStaff[staffName].progress++;
+      else if(t.status==='Completed') groupedByStaff[staffName].completed++;
+      const due=new Date(t.dueDate);
+      const now=new Date(); now.setHours(0,0,0,0);
+      if(due<now && t.status!=='Completed') groupedByStaff[staffName].overdue++;
+    });
+    let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">';
+    Object.entries(groupedByStaff).forEach(([staffName, g])=>{
+      const completionPct=g.total>0? Math.round((g.completed/g.total)*100):0;
+      html+=`<div style="padding:10px;background:#fff;border:1px solid #EFEAFD;border-radius:12px"><b>👤 ${staffName}</b><div style="font-size:11px;color:#6B7280;margin-top:4px">Total: ${g.total} • ✅ ${g.completed} • 🔄 ${g.progress} • ⏳ ${g.pending} ${g.overdue>0? '• 🔴 Overdue: '+g.overdue:''}</div><div style="margin-top:6px;background:#F5F3FF;border-radius:8px;height:8px;overflow:hidden"><div style="width:${completionPct}%;height:100%;background:#059669"></div></div><div style="font-size:10px;color:#6B7280;margin-top:2px">${completionPct}% completed</div></div>`;
+    });
+    html+='</div>';
+    if(Object.keys(groupedByStaff).length===0) html='<div style="font-size:12px;color:#8B8BA7">No tasks assigned yet — Assign work to staff for daily monitoring</div>';
+    monitoringEl.innerHTML=html;
+  }
+  
+  list.innerHTML='';
+  if(filtered.length===0){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:#8B8BA7">No tasks for '+taskFilter+'. Click + Assign Task to assign service work to staff</div>';
+    return;
+  }
+  filtered.sort((a,b)=> new Date(a.dueDate)-new Date(b.dueDate));
+  filtered.forEach(t=>{
+    const due=new Date(t.dueDate);
+    const now=new Date(); now.setHours(0,0,0,0);
+    const isOverdue=due<now && t.status!=='Completed';
+    const priorityColor=t.priority==='High'?'#EF4444':t.priority==='Urgent'?'#991B1B':t.priority==='Medium'?'#D97706':'#6B7280';
+    const statusColor=t.status==='Completed'?'#059669':t.status==='In Progress'?'#0EA5E9':t.status==='Pending'?'#D97706':'#EF4444';
+    const div=document.createElement('div');
+    div.className='item';
+    div.style.borderLeft='4px solid '+statusColor;
+    if(isOverdue) div.style.background='#FEF2F2';
+    div.innerHTML=`<div><b>📋 ${t.title} ${isOverdue?'<span style="background:#FECACA;color:#991B1B;padding:2px 6px;border-radius:6px;font-size:10px">OVERDUE</span>':''}</b><div style="font-size:11px;color:#6B7280;margin-top:2px">👤 ${t.staffName} • Priority: <span style="color:${priorityColor};font-weight:700">${t.priority}</span> • Status: <span style="color:${statusColor};font-weight:700">${t.status}</span> • Due: ${t.dueDate} • Client: ${t.clientName||''} ${t.clientContact?'• 📱 '+t.clientContact:''}</div><div style="font-size:11px;color:#6B7280">${t.description||''} ${t.location?'• 📍 '+t.location:''} ${t.estimatedHours?'• ⏱️ '+t.estimatedHours+'h':''}</div></div><div style="display:flex;gap:4px;flex-direction:column"><select onchange="updateTaskStatus('${t.id}', this.value)" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid #EDE9FF"><option ${t.status==='Pending'?'selected':''}>Pending</option><option ${t.status==='In Progress'?'selected':''}>In Progress</option><option ${t.status==='Completed'?'selected':''}>Completed</option></select><div style="display:flex;gap:4px"><button class="action-btn edit" onclick="openTaskModal('${t.id}')">Edit</button><button class="action-btn delete" onclick="deleteTask('${t.id}')">Delete</button></div></div>`;
+    list.appendChild(div);
+  });
+}
+async function loadTasks(){
+  if(!currentUser) return;
+  try{
+    const snap=await db.collection('users').doc(currentUser.uid).collection('tasks').orderBy('dueDate').get();
+    tasks=snap.docs.map(d=>d.data());
+    renderTasks(); renderStaff();
+  }catch(e){ console.log('loadTasks error', e); }
+}
+async function saveTask(){
+  try{
+    const title=document.getElementById('taskTitle').value.trim();
+    const staffName=document.getElementById('taskStaff').value;
+    const dueDate=document.getElementById('taskDueDate').value;
+    const errEl=document.getElementById('taskErrorMsg');
+    if(errEl) errEl.style.display='none';
+    if(!title){ if(errEl){ errEl.innerText='⚠️ Task Title is mandatory'; errEl.style.display='block'; } return; }
+    if(!staffName){ if(errEl){ errEl.innerText='⚠️ Assign to Staff is mandatory'; errEl.style.display='block'; } return; }
+    if(!dueDate){ if(errEl){ errEl.innerText='⚠️ Due Date is mandatory'; errEl.style.display='block'; } return; }
+    const data={
+      title,
+      description:document.getElementById('taskDesc').value,
+      staffName,
+      priority:document.getElementById('taskPriority').value,
+      status:document.getElementById('taskStatus').value,
+      dueDate,
+      clientName:document.getElementById('taskClient').value,
+      clientContact:document.getElementById('taskClientContact').value,
+      location:document.getElementById('taskLocation').value,
+      estimatedHours:parseFloat(document.getElementById('taskEstimatedHours').value)||0,
+      updated:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    const editId=document.getElementById('taskModal').dataset.editId;
+    if(editId){
+      await db.collection('users').doc(currentUser.uid).collection('tasks').doc(editId).update(data);
+    } else {
+      const id='task_'+Date.now();
+      data.id=id; data.created=firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('users').doc(currentUser.uid).collection('tasks').doc(id).set(data);
+    }
+    closeModals(); delete document.getElementById('taskModal').dataset.editId;
+    loadTasks();
+  }catch(e){ console.error('saveTask error', e); const errEl=document.getElementById('taskErrorMsg'); if(errEl){ errEl.innerText='❌ Save failed: '+e.message; errEl.style.display='block'; } }
+}
+async function updateTaskStatus(id, newStatus){
+  try{
+    await db.collection('users').doc(currentUser.uid).collection('tasks').doc(id).update({status:newStatus, updated:firebase.firestore.FieldValue.serverTimestamp()});
+    loadTasks();
+  }catch(e){ console.error('updateTaskStatus error', e); }
+}
+async function deleteTask(id){
+  if(!confirm('Delete task?')) return;
+  await db.collection('users').doc(currentUser.uid).collection('tasks').doc(id).delete();
+  loadTasks();
+}
+function exportTaskExcel(){
+  if(tasks.length===0){ alert('No tasks'); return; }
+  const data=tasks.map(t=>({Title:t.title, Staff:t.staffName, Status:t.status, Priority:t.priority, DueDate:t.dueDate, Client:t.clientName||'', Contact:t.clientContact||'', Location:t.location||'', Hours:t.estimatedHours||0, Description:t.description||''}));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Tasks');
+  XLSX.writeFile(wb, 'Service_Tasks_'+new Date().toISOString().split('T')[0]+'.xlsx');
+}
+
+// Extend loadUserData to load business data
+const originalLoadUserData=typeof loadUserData!=='undefined'?loadUserData:null;
+
+
+function toggleForgotBox(){
+  const box=document.getElementById('forgotBox');
+  if(!box) return;
+  box.style.display=box.style.display==='none'?'block':'none';
+  if(box.style.display==='block'){
+    const mainEmail=document.getElementById('email').value;
+    if(mainEmail) document.getElementById('forgotEmail').value=mainEmail;
+  }
+}
+
+function toggleSignup(){
+  const el=document.getElementById('signupBox');
+  if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
+  // Also hide forgot box if open
+  const fb=document.getElementById('forgotBox');
+  if(fb && el.style.display==='block') fb.style.display='none';
+}
+
+
+// === NEW MODULES: Attendance, Leave, Advance ===
+let attendances=[], leaves=[], advances=[];
+let attFilter='all', leaveFilter='all', advFilter='all';
+
+function openAttendanceModal(editId=null){
+  fillStaffSelects();
+  if(editId){
+    const a=attendances.find(x=>x.id===editId);
+    if(a){ document.getElementById('attStaff').value=a.staff; document.getElementById('attDate').value=a.date; document.getElementById('attStatus').value=a.status; document.getElementById('attCheckIn').value=a.checkIn||''; document.getElementById('attCheckOut').value=a.checkOut||''; document.getElementById('attNote').value=a.note||''; document.getElementById('attendanceModal').dataset.editId=editId; }
+  } else { delete document.getElementById('attendanceModal').dataset.editId; document.getElementById('attDate').value=new Date().toISOString().split('T')[0]; document.getElementById('attCheckIn').value=''; document.getElementById('attCheckOut').value=''; document.getElementById('attNote').value=''; }
+  document.getElementById('attendanceModal').classList.add('show');
+}
+function openLeaveModal(editId=null){
+  fillStaffSelects();
+  if(editId){
+    const l=leaves.find(x=>x.id===editId);
+    if(l){ document.getElementById('leaveStaff').value=l.staff; document.getElementById('leaveType').value=l.type; document.getElementById('leaveStatus').value=l.status; document.getElementById('leaveFrom').value=l.fromDate; document.getElementById('leaveTo').value=l.toDate; document.getElementById('leaveReason').value=l.reason||''; document.getElementById('leaveApprovedBy').value=l.approvedBy||''; document.getElementById('leaveModal').dataset.editId=editId; }
+  } else { delete document.getElementById('leaveModal').dataset.editId; document.getElementById('leaveFrom').value=''; document.getElementById('leaveTo').value=''; document.getElementById('leaveReason').value=''; }
+  document.getElementById('leaveModal').classList.add('show');
+}
+function openAdvanceModal(editId=null){
+  fillStaffSelects();
+  if(editId){
+    const a=advances.find(x=>x.id===editId);
+    if(a){ document.getElementById('advStaff').value=a.staff; document.getElementById('advAmount').value=a.amount; document.getElementById('advDate').value=a.date; document.getElementById('advRepayMode').value=a.repayMode||'Deduct from Salary'; document.getElementById('advStatus').value=a.status; document.getElementById('advRepaid').value=a.repaid||0; document.getElementById('advBalance').value=a.balance||''; document.getElementById('advNote').value=a.note||''; document.getElementById('advanceModal').dataset.editId=editId; }
+  } else { delete document.getElementById('advanceModal').dataset.editId; document.getElementById('advAmount').value=''; document.getElementById('advDate').value=new Date().toISOString().split('T')[0]; document.getElementById('advRepaid').value=0; document.getElementById('advBalance').value=''; document.getElementById('advNote').value=''; }
+  document.getElementById('advanceModal').classList.add('show');
+}
+function fillStaffSelects(){
+  const staffNames = (typeof staffList !== 'undefined' ? staffList : (typeof staffs !== 'undefined' ? staffs : [])).map(s=>s.name || s.staffName || '');
+  const selects = ['attStaff','leaveStaff','advStaff','attStaffFilter','leaveStaffFilter','advStaffFilter'];
+  selects.forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const isFilter = id.includes('Filter');
+    const current = el.value;
+    if(isFilter){ el.innerHTML='<option value="all">All Staff</option>'; } else { el.innerHTML='<option value="">-- Select Staff * --</option>'; }
+    staffNames.forEach(n=>{ if(!n) return; const o=document.createElement('option'); o.value=n; o.textContent=n; el.appendChild(o); });
+    if(current) el.value=current;
+  });
+}
+function saveAttendance(){
+  const staff=document.getElementById('attStaff').value, date=document.getElementById('attDate').value, status=document.getElementById('attStatus').value;
+  if(!staff||!date){alert('Staff and Date required');return;}
+  const data={staff,date,status,checkIn:document.getElementById('attCheckIn').value,checkOut:document.getElementById('attCheckOut').value,note:document.getElementById('attNote').value,updated:Date.now()};
+  const editId=document.getElementById('attendanceModal').dataset.editId;
+  if(editId){ db.collection('users').doc(currentUser.uid).collection('attendances').doc(editId).update(data).then(()=>{closeModals(); loadBusinessData();}); }
+  else { data.created=Date.now(); db.collection('users').doc(currentUser.uid).collection('attendances').add(data).then(()=>{closeModals(); loadBusinessData();}); }
+}
+function saveLeave(){
+  const staff=document.getElementById('leaveStaff').value, fromDate=document.getElementById('leaveFrom').value, toDate=document.getElementById('leaveTo').value;
+  if(!staff||!fromDate||!toDate){alert('Staff, From, To required');return;}
+  const data={staff,type:document.getElementById('leaveType').value,status:document.getElementById('leaveStatus').value,fromDate,toDate,reason:document.getElementById('leaveReason').value,approvedBy:document.getElementById('leaveApprovedBy').value,updated:Date.now()};
+  const editId=document.getElementById('leaveModal').dataset.editId;
+  if(editId){ db.collection('users').doc(currentUser.uid).collection('leaves').doc(editId).update(data).then(()=>{closeModals(); loadBusinessData();}); }
+  else { data.created=Date.now(); db.collection('users').doc(currentUser.uid).collection('leaves').add(data).then(()=>{closeModals(); loadBusinessData();}); }
+}
+function saveAdvance(){
+  const staff=document.getElementById('advStaff').value, amount=parseFloat(document.getElementById('advAmount').value)||0, date=document.getElementById('advDate').value;
+  if(!staff||!amount||!date){alert('Staff, Amount, Date required');return;}
+  const repaid=parseFloat(document.getElementById('advRepaid').value)||0;
+  const balance=amount-repaid;
+  const data={staff,amount,date,repayMode:document.getElementById('advRepayMode').value,status:document.getElementById('advStatus').value,repaid,balance,note:document.getElementById('advNote').value,updated:Date.now()};
+  const editId=document.getElementById('advanceModal').dataset.editId;
+  if(editId){ db.collection('users').doc(currentUser.uid).collection('advances').doc(editId).update(data).then(()=>{closeModals(); loadBusinessData();}); }
+  else { data.created=Date.now(); db.collection('users').doc(currentUser.uid).collection('advances').add(data).then(()=>{closeModals(); loadBusinessData();}); }
+}
+function filterAttendance(f){attFilter=f; document.querySelectorAll('#attTabs .tab').forEach(b=>b.classList.toggle('active', b.dataset.att===f)); renderAttendance();}
+function filterLeave(f){leaveFilter=f; document.querySelectorAll('#leaveTabs .tab').forEach(b=>b.classList.toggle('active', b.dataset.leave===f)); renderLeaves();}
+function filterAdvance(f){advFilter=f; document.querySelectorAll('#advTabs .tab').forEach(b=>b.classList.toggle('active', b.dataset.adv===f)); renderAdvances();}
+function renderAttendance(){
+  const list=document.getElementById('attList'); if(!list) return;
+  let filtered=[...attendances];
+  const monthF=document.getElementById('attMonthFilter')?.value, staffF=document.getElementById('attStaffFilter')?.value, statusF=document.getElementById('attStatusFilter')?.value, dateF=document.getElementById('attDateFilter')?.value;
+  if(attFilter!=='all'){ if(attFilter==='Today'){ const today=new Date().toISOString().split('T')[0]; filtered=filtered.filter(a=>a.date===today); } else filtered=filtered.filter(a=>a.status===attFilter); }
+  if(staffF && staffF!=='all') filtered=filtered.filter(a=>a.staff===staffF);
+  if(statusF && statusF!=='all') filtered=filtered.filter(a=>a.status===statusF);
+  if(dateF) filtered=filtered.filter(a=>a.date===dateF);
+  if(monthF==='thisMonth'){ const m=new Date().toISOString().slice(0,7); filtered=filtered.filter(a=>a.date?.startsWith(m)); }
+  if(monthF==='lastMonth'){ const d=new Date(); d.setMonth(d.getMonth()-1); const m=d.toISOString().slice(0,7); filtered=filtered.filter(a=>a.date?.startsWith(m)); }
+  list.innerHTML= filtered.length===0 ? '<div style="padding:12px;color:#6B7280">No attendance records</div>' : filtered.sort((a,b)=> (b.date||'').localeCompare(a.date||'')).map(a=>`<div class="item"><div><b>${a.staff}</b> — ${a.date} — <span class="badge ${a.status==='Present'?'badge-green':a.status==='Absent'?'badge-red':'badge-yellow'}">${a.status}</span><div style="font-size:11px;color:#6B7280">${a.checkIn? 'In:'+a.checkIn:''} ${a.checkOut? 'Out:'+a.checkOut:''} ${a.note||''}</div></div><div><button class="action-btn edit" onclick="openAttendanceModal('${a.id}')">Edit</button><button class="action-btn delete" onclick="if(confirm('Delete?')) db.collection('users').doc(currentUser.uid).collection('attendances').doc('${a.id}').delete().then(()=>loadBusinessData())">Del</button></div></div>`).join('');
+  // KPI
+  const today=new Date().toISOString().split('T')[0], thisMonth=new Date().toISOString().slice(0,7);
+  const todayAtt=attendances.filter(a=>a.date===today);
+  document.getElementById('attKpiPresent').textContent=todayAtt.filter(a=>a.status==='Present').length;
+  document.getElementById('attKpiAbsent').textContent=todayAtt.filter(a=>a.status==='Absent').length;
+  document.getElementById('attKpiMonthPresent').textContent=attendances.filter(a=>a.date?.startsWith(thisMonth) && a.status==='Present').length;
+  document.getElementById('attKpiHalf').textContent=attendances.filter(a=>a.date?.startsWith(thisMonth) && a.status==='Half Day').length;
+  // Monthly table
+  const staffMap={}; attendances.forEach(a=>{ if(!a.date?.startsWith(thisMonth)) return; if(!staffMap[a.staff]) staffMap[a.staff]={Present:0,Absent:0,Half:0}; if(a.status==='Present') staffMap[a.staff].Present++; if(a.status==='Absent') staffMap[a.staff].Absent++; if(a.status==='Half Day') staffMap[a.staff].Half++; });
+  document.getElementById('attMonthlyTable').innerHTML= Object.keys(staffMap).length===0? '<div style="font-size:11px;color:#6B7280">No data this month</div>' : '<div style="font-size:11px">'+Object.entries(staffMap).map(([s,v])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #EFF6FF"><span><b>${s}</b></span><span>P:${v.Present} A:${v.Absent} H:${v.Half}</span></div>`).join('')+'</div>';
+  document.querySelectorAll('#attTabs .tab')[0].textContent=`All (${attendances.length})`;
+}
+function renderLeaves(){
+  const list=document.getElementById('leaveList'); if(!list) return;
+  let filtered=[...leaves];
+  const monthF=document.getElementById('leaveMonthFilter')?.value, staffF=document.getElementById('leaveStaffFilter')?.value, statusF=document.getElementById('leaveStatusFilter')?.value;
+  if(leaveFilter!=='all') filtered=filtered.filter(l=> l.status===leaveFilter || l.type===leaveFilter);
+  if(staffF && staffF!=='all') filtered=filtered.filter(l=>l.staff===staffF);
+  if(statusF && statusF!=='all') filtered=filtered.filter(l=>l.status===statusF);
+  if(monthF==='thisMonth'){ const m=new Date().toISOString().slice(0,7); filtered=filtered.filter(l=>l.fromDate?.startsWith(m) || l.toDate?.startsWith(m)); }
+  if(monthF==='pending') filtered=filtered.filter(l=>l.status==='Pending');
+  list.innerHTML= filtered.length===0 ? '<div style="padding:12px;color:#6B7280">No leave records</div>' : filtered.sort((a,b)=> (b.fromDate||'').localeCompare(a.fromDate||'')).map(l=>`<div class="item"><div><b>${l.staff}</b> — ${l.type} — ${l.fromDate} to ${l.toDate} — <span class="badge ${l.status==='Approved'?'badge-green':l.status==='Pending'?'badge-yellow':'badge-red'}">${l.status}</span><div style="font-size:11px;color:#6B7280">${l.reason||''} ${l.approvedBy? 'By:'+l.approvedBy:''}</div></div><div><button class="action-btn edit" onclick="openLeaveModal('${l.id}')">Edit</button><button class="action-btn delete" onclick="if(confirm('Delete?')) db.collection('users').doc(currentUser.uid).collection('leaves').doc('${l.id}').delete().then(()=>loadBusinessData())">Del</button></div></div>`).join('');
+  const thisMonth=new Date().toISOString().slice(0,7);
+  document.getElementById('leaveKpiPending').textContent=leaves.filter(l=>l.status==='Pending').length;
+  document.getElementById('leaveKpiApproved').textContent=leaves.filter(l=>l.status==='Approved' && (l.fromDate?.startsWith(thisMonth))).length;
+  document.getElementById('leaveKpiDays').textContent=leaves.filter(l=>l.fromDate?.startsWith(thisMonth)).reduce((s,l)=>{ const from=new Date(l.fromDate), to=new Date(l.toDate); const days=isNaN(from)||isNaN(to)?1: Math.ceil((to-from)/86400000)+1; return s+days; },0);
+  document.getElementById('leaveKpiSick').textContent=leaves.filter(l=>l.type==='Sick' && l.fromDate?.startsWith(thisMonth)).length;
+  document.querySelectorAll('#leaveTabs .tab')[0].textContent=`All Leaves (${leaves.length})`;
+}
+function renderAdvances(){
+  const list=document.getElementById('advList'); if(!list) return;
+  let filtered=[...advances];
+  const monthF=document.getElementById('advMonthFilter')?.value, staffF=document.getElementById('advStaffFilter')?.value, statusF=document.getElementById('advStatusFilter')?.value;
+  if(advFilter!=='all') filtered=filtered.filter(a=>a.status===advFilter);
+  if(staffF && staffF!=='all') filtered=filtered.filter(a=>a.staff===staffF);
+  if(statusF && statusF!=='all') filtered=filtered.filter(a=>a.status===statusF);
+  if(monthF==='thisMonth'){ const m=new Date().toISOString().slice(0,7); filtered=filtered.filter(a=>a.date?.startsWith(m)); }
+  if(monthF==='pending') filtered=filtered.filter(a=>a.balance>0);
+  list.innerHTML= filtered.length===0 ? '<div style="padding:12px;color:#6B7280">No advance records</div>' : filtered.sort((a,b)=> (b.date||'').localeCompare(a.date||'')).map(a=>`<div class="item"><div><b>${a.staff}</b> — ₹${a.amount} — Balance ₹${a.balance} — <span class="badge ${a.status==='Fully Repaid'?'badge-green':a.status==='Given'?'badge-red':'badge-yellow'}">${a.status}</span><div style="font-size:11px;color:#6B7280">${a.date} • ${a.repayMode} • Repaid ₹${a.repaid||0} • ${a.note||''}</div></div><div><button class="action-btn edit" onclick="openAdvanceModal('${a.id}')">Edit</button><button class="action-btn delete" onclick="if(confirm('Delete?')) db.collection('users').doc(currentUser.uid).collection('advances').doc('${a.id}').delete().then(()=>loadBusinessData())">Del</button></div></div>`).join('');
+  const thisMonth=new Date().toISOString().slice(0,7);
+  document.getElementById('advKpiTotal').textContent='₹'+advances.reduce((s,a)=>s+(a.amount||0),0);
+  document.getElementById('advKpiPending').textContent='₹'+advances.reduce((s,a)=>s+(a.balance||0),0);
+  document.getElementById('advKpiRepaid').textContent='₹'+advances.filter(a=>a.date?.startsWith(thisMonth)).reduce((s,a)=>s+(a.repaid||0),0);
+  document.getElementById('advKpiThisMonth').textContent='₹'+advances.filter(a=>a.date?.startsWith(thisMonth)).reduce((s,a)=>s+(a.amount||0),0);
+  const staffBal={}; advances.forEach(a=>{ if(a.balance<=0) return; if(!staffBal[a.staff]) staffBal[a.staff]=0; staffBal[a.staff]+=a.balance; });
+  document.getElementById('advMonthlyTable').innerHTML= Object.keys(staffBal).length===0? '<div style="font-size:11px;color:#6B7280">No pending balance</div>' : '<div style="font-size:11px">'+Object.entries(staffBal).map(([s,b])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #FECACA"><span><b>${s}</b></span><span>₹${b}</span></div>`).join('')+'</div>';
+  document.querySelectorAll('#advTabs .tab')[0].textContent=`All Advances (${advances.length})`;
+}
+function exportAttendanceExcel(){ const data=attendances.map(a=>({Staff:a.staff,Date:a.date,Status:a.status,CheckIn:a.checkIn,CheckOut:a.checkOut,Note:a.note})); const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Attendance'); XLSX.writeFile(wb,'Attendance.xlsx'); }
+function exportLeaveExcel(){ const data=leaves.map(l=>({Staff:l.staff,Type:l.type,From:l.fromDate,To:l.toDate,Status:l.status,Reason:l.reason})); const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Leaves'); XLSX.writeFile(wb,'Leaves.xlsx'); }
+function exportAdvanceExcel(){ const data=advances.map(a=>({Staff:a.staff,Amount:a.amount,Date:a.date,Repaid:a.repaid,Balance:a.balance,Status:a.status,Mode:a.repayMode})); const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Advances'); XLSX.writeFile(wb,'Advances.xlsx'); }
+
+// Hook into existing loadBusinessData
+const originalLoadBusinessData = typeof loadBusinessData === 'function' ? loadBusinessData : null;
+async function loadBusinessDataNew(){
+  if(originalLoadBusinessData) await originalLoadBusinessData();
+  else if(typeof loadBusinessDataOld === 'function') await loadBusinessDataOld();
+  try{
+    const uid=currentUser?.uid; if(!uid) return;
+    const attSnap=await db.collection('users').doc(uid).collection('attendances').orderBy('date','desc').get(); attendances=attSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const leaveSnap=await db.collection('users').doc(uid).collection('leaves').orderBy('fromDate','desc').get(); leaves=leaveSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const advSnap=await db.collection('users').doc(uid).collection('advances').orderBy('date','desc').get(); advances=advSnap.docs.map(d=>({id:d.id,...d.data()}));
+    fillStaffSelects();
+    renderAttendance(); renderLeaves(); renderAdvances();
+  }catch(e){ console.log('New modules load error', e); 
+    try{
+      const uid=currentUser?.uid; if(!uid) return;
+      const attSnap=await db.collection('users').doc(uid).collection('attendances').get(); attendances=attSnap.docs.map(d=>({id:d.id,...d.data()}));
+      const leaveSnap=await db.collection('users').doc(uid).collection('leaves').get(); leaves=leaveSnap.docs.map(d=>({id:d.id,...d.data()}));
+      const advSnap=await db.collection('users').doc(uid).collection('advances').get(); advances=advSnap.docs.map(d=>({id:d.id,...d.data()}));
+      fillStaffSelects(); renderAttendance(); renderLeaves(); renderAdvances();
+    }catch(e2){ console.log(e2); }
+  }
+}
+// Override
+if(typeof loadBusinessData !== 'undefined'){ var loadBusinessDataOld = loadBusinessData; loadBusinessData = loadBusinessDataNew; }
+else { loadBusinessData = loadBusinessDataNew; }
+
+// Auto calc advance balance
+document.addEventListener('input', function(e){
+  if(e.target && (e.target.id==='advAmount' || e.target.id==='advRepaid')){
+    const amt=parseFloat(document.getElementById('advAmount')?.value)||0;
+    const rep=parseFloat(document.getElementById('advRepaid')?.value)||0;
+    const balEl=document.getElementById('advBalance');
+    if(balEl) balEl.value=amt-rep;
+  }
+});
+
+</script>
+
+<!-- === EXPENSES MODAL — V8.18 — Fixed to open with .show class === -->
+<div class="modal" id="expModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>💰 Add / Edit Expense — V8.18</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<label style="font-size:11px;font-weight:700">GROUP *</label>
+<select class="input" id="eGroup" onchange="updateSubGroupOptions()">
+<option>Food</option><option>Transport</option><option>Shopping</option><option>Fees</option><option>Medical</option><option>Office Expenses</option><option>Other</option>
+</select>
+<label style="font-size:11px;font-weight:700;margin-top:8px;display:block">SUB GROUP *</label>
+<select class="input" id="eSubGroup" onchange="toggleVehicleField(); toggleSchoolFeeField()">
+<option>Zomato</option><option>Swiggy</option><option>Restaurant</option><option>Petrol</option><option>Diesel</option><option>School Fees</option><option>Other</option>
+</select>
+<div id="vehicleFieldWrap" style="display:none;margin-top:8px">
+<label style="font-size:11px;font-weight:700">VEHICLE *Compulsory for Petrol/Diesel</label>
+<select class="input" id="eVehicle"></select>
+</div>
+<div id="schoolFeeWrap" style="display:none;margin-top:8px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:10px">
+<div style="font-size:12px;font-weight:800;color:#059669">🎓 School Fees Details</div>
+<select class="input" id="eChildSelect" style="margin-top:6px"></select>
+<input class="input" id="eSchoolName" placeholder="School Name" style="margin-top:6px"/>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+<input class="input" id="eClass" placeholder="Class"/>
+<input class="input" id="eFeeType" placeholder="Fee Type (Tuition, Annual)"/>
+<input class="input" id="eTerm" placeholder="Term (Term 1, Term 2)"/>
+</div>
+</div>
+<input class="input" id="eAmount" placeholder="Amount ₹ *" style="margin-top:8px" type="number"/>
+<input class="input" id="eDate" style="margin-top:8px" type="date"/>
+<select class="input" id="eFamily" style="margin-top:8px"></select>
+<input class="input" id="eNote" placeholder="Note" style="margin-top:8px"/>
+<div id="expErrorMsg" style="display:none;margin-top:8px;padding:8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#991B1B"></div>
+<button class="btn-primary" onclick="saveExpense()" style="margin-top:12px">Save Expense</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+</div>
+</div></div>
+<!-- === FAMILY MODAL === -->
+<div class="modal" id="familyModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>👨‍👩‍👧 Add / Edit Family Member — Full Details + Medical — V8.18</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<input class="input" id="fName" placeholder="Name *"/><select class="input" id="fRelation"><option>Self</option><option>Spouse</option><option>Child</option><option>Son</option><option>Daughter</option><option>Father</option><option>Mother</option><option>Other</option></select>
+<input class="input" id="fDob" placeholder="DOB *" type="date"/><select class="input" id="fGender"><option value="">Gender</option><option>Male</option><option>Female</option><option>Other</option></select>
+<input class="input" id="fBloodGroup" placeholder="Blood Group"/><input class="input" id="fMobile" placeholder="Mobile *"/>
+<input class="input" id="fEmail" placeholder="Email"/><input class="input" id="fOccupation" placeholder="Occupation"/>
+</div>
+<input class="input" id="fAddress" placeholder="Address" style="margin-top:8px"/>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<input class="input" id="fAadhaar" placeholder="Aadhaar"/><input class="input" id="fPan" placeholder="PAN"/>
+<input class="input" id="fHeight" placeholder="Height"/><input class="input" id="fWeight" placeholder="Weight"/>
+</div>
+<div style="margin-top:10px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:10px">
+<div style="font-size:12px;font-weight:800">🏥 Medical Details</div>
+<textarea class="input" id="fMedicalHistory" placeholder="Medical History" style="margin-top:6px"></textarea>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+<input class="input" id="fAllergies" placeholder="Allergies"/><input class="input" id="fMedications" placeholder="Medications"/>
+<input class="input" id="fDoctorName" placeholder="Doctor Name"/><input class="input" id="fDoctorContact" placeholder="Doctor Contact"/>
+<input class="input" id="fHospital" placeholder="Hospital"/><input class="input" id="fEmergencyContact" placeholder="Emergency Contact"/>
+</div>
+</div>
+<div style="margin-top:10px;background:#F5F3FF;border:1px solid #EDE9FF;border-radius:12px;padding:10px">
+<div style="font-size:12px;font-weight:800">🛡️ Insurance</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+<input class="input" id="fInsuranceCompany" placeholder="Insurance Company"/><input class="input" id="fInsurancePolicyNo" placeholder="Policy No"/>
+<input class="input" id="fInsuranceExpiry" type="date"/><input class="input" id="fInsurancePremium" placeholder="Premium ₹" type="number"/>
+<input class="input" id="fNominee" placeholder="Nominee"/><input class="input" id="fNomineeRelation" placeholder="Nominee Relation"/>
+</div>
+</div>
+<div style="margin-top:10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:10px">
+<div style="font-size:12px;font-weight:800">🎓 School (for Child)</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+<input class="input" id="fSchoolName" placeholder="School Name"/><input class="input" id="fSchoolClass" placeholder="Class"/>
+<input class="input" id="fSchoolDue" placeholder="Fees Due" type="date"/><input class="input" id="fSchoolFeesAmount" placeholder="Fees Amount" type="number"/>
+<input class="input" id="fSchoolContact" placeholder="School Contact"/>
+</div>
+</div>
+<textarea class="input" id="fNotes" placeholder="Notes" style="margin-top:8px"></textarea>
+<div id="famErrorMsg" style="display:none;margin-top:8px;padding:8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#991B1B"></div>
+<button class="btn-primary" onclick="saveFamily()" style="margin-top:12px">Save Family Member</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+</div>
+</div></div>
+<!-- === INVESTMENTS MODAL === -->
+<div class="modal" id="invModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>📈 Add / Edit Investment — Family Wise</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<select class="input" id="iFamily"><option>Self</option><option>Spouse</option><option>Child</option><option>Son</option><option>Daughter</option><option>Father</option><option>Mother</option><option>Family</option></select>
+<select class="input" id="iType" style="margin-top:8px"><option>LIC</option><option>SIP</option><option>FD</option><option>PPF</option><option>Mutual Fund</option><option>Bank</option><option>Loan</option><option>Insurance</option><option>Gold</option><option>Other</option></select>
+<input class="input" id="iName" placeholder="Name — e.g., LIC Jeevan Anand" style="margin-top:8px"/>
+<input class="input" id="iAmount" placeholder="Amount / Premium ₹" style="margin-top:8px" type="number"/>
+<input class="input" id="iStartDate" style="margin-top:8px" type="date"/>
+<input class="input" id="iMaturityDate" placeholder="Maturity Date" style="margin-top:8px" type="date"/>
+<input class="input" id="iInterest" placeholder="Interest % (for FD/Loan)" style="margin-top:8px" type="number"/>
+<button class="btn-primary" onclick="saveInvestment()" style="margin-top:12px">Save Investment</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+</div>
+</div></div>
+<!-- === ELECTRONICS MODAL === -->
+<div class="modal" id="elecModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>📺 Add / Edit Electronics — Warranty in Years</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<select class="input" id="elType"><option>TV</option><option>AC</option><option>Fridge</option><option>Washing Machine</option><option>Mobile</option><option>Laptop</option><option>Other</option></select>
+<input class="input" id="elBrand" placeholder="Brand (Samsung, LG, Apple)" style="margin-top:8px"/>
+<input class="input" id="elModel" placeholder="Model No" style="margin-top:8px"/>
+<input class="input" id="elPurchaseDate" onchange="calcWarrantyEndFromYears()" style="margin-top:8px" type="date"/>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<input class="input" id="elWarrantyYears" oninput="calcWarrantyEndFromYears()" placeholder="Warranty Years — e.g., 3" type="number"/>
+<input class="input" id="elWarrantyMonths" oninput="calcWarrantyEndFromYears()" placeholder="Months — e.g., 6" type="number"/>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<input class="input" id="elWarrantyStart" placeholder="Warranty Start" type="date"/><input class="input" id="elWarrantyEnd" placeholder="Warranty End (Auto)" type="date"/>
+</div>
+<div id="warrantyCalcInfo" style="display:none;margin-top:8px;padding:8px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;font-size:12px"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<input class="input" id="elWarrantyType" placeholder="Warranty Type"/><input class="input" id="elWarrantyCardNo" placeholder="Warranty Card No"/>
+<input class="input" id="elPrice" placeholder="Price ₹" type="number"/><input class="input" id="elDealer" placeholder="Dealer / Shop"/>
+<input class="input" id="elDealerContact" placeholder="Dealer Contact"/>
+</div>
+<div style="margin-top:10px;background:#F5F3FF;border-radius:12px;padding:10px">
+<div style="font-size:12px;font-weight:800">🔧 AMC Tracking</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+<input class="input" id="elAmcProvider" placeholder="AMC Provider"/><input class="input" id="elAmcCost" placeholder="AMC Cost ₹/year" type="number"/>
+<input class="input" id="elAmcStart" type="date"/><input class="input" id="elAmcEnd" placeholder="AMC End" type="date"/>
+<input class="input" id="elLastService" type="date"/><input class="input" id="elNextService" placeholder="Next Service" type="date"/>
+</div>
+<input class="input" id="elServiceNote" placeholder="Service Notes" style="margin-top:6px"/>
+</div>
+<input accept="image/*" class="input" id="elBillFile" style="margin-top:8px" type="file"/>
+<button class="btn-primary" onclick="saveElectronics()" style="margin-top:12px">Save Electronics</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+</div>
+</div></div>
+<!-- === VEHICLES MODAL === -->
+<div class="modal" id="vehModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>🚗 Add / Edit Vehicle</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<input class="input" id="vName" placeholder="Vehicle Name — e.g., Activa, Car"/>
+<input class="input" id="vNumber" placeholder="Number — e.g., MP09 AB 1234" style="margin-top:8px"/>
+<input class="input" id="vInsuranceExpiry" placeholder="Insurance Expiry" style="margin-top:8px" type="date"/>
+<input class="input" id="vPucExpiry" placeholder="PUC Expiry" style="margin-top:8px" type="date"/>
+<button class="btn-primary" onclick="saveVehicle()" style="margin-top:12px">Save Vehicle</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+</div>
+</div></div>
+<!-- === OFFICE MODAL — Fixed with modal class === -->
+
+<!-- === OFFICE MODAL — Fixed — Unlocked for Entry === -->
+<div class="modal" id="officeModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>🏢 Add Office Expense — Deposit, Rent, Salary, Maintenance, Water</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<label style="font-size:11px;font-weight:700">OFFICE HEAD * (Deposit, Rent, Salary, Maintenance, Water, etc)</label>
+<select class="input" id="offHead">
+<option>Deposit</option><option>Rent</option><option>Salary</option><option>Maintenance</option><option>Water Exp</option><option>Electricity</option><option>Internet</option><option>Stationery</option><option>Other</option>
+</select>
+<input class="input" id="offAmount" placeholder="Amount ₹ — e.g., 25000" style="margin-top:8px" type="number"/>
+<input class="input" id="offDate" style="margin-top:8px" type="date"/>
+<input class="input" id="offNote" placeholder="Note — e.g., Indore office rent March" style="margin-top:8px"/>
+<select class="input" id="offFamily" style="margin-top:8px"><option value="">-- General / Optional --</option></select>
+<button class="btn-primary" onclick="saveOffice()" style="margin-top:12px">Save Office Expense</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+<div id="offMsg" style="font-size:11px;color:#6B7280;margin-top:8px"></div>
+</div>
+</div></div>
+<!-- === STAFF MODAL — Professional === -->
+<div class="modal" id="staffModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>👥 Add / Edit Staff — Professional Business</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<input class="input" id="stName" placeholder="Staff Name *"/>
+<select class="input" id="stRole"><option>Field Staff</option><option>Office Staff</option><option>Manager</option><option>Accountant</option><option>Technician</option><option>Sales</option><option>Service Staff</option><option>Other</option></select>
+<input class="input" id="stMobile" placeholder="Mobile *"/><input class="input" id="stEmail" placeholder="Email"/>
+<input class="input" id="stJoinDate" placeholder="Joining Date" type="date"/><input class="input" id="stSalary" placeholder="Monthly Salary ₹ *" type="number"/>
+<select class="input" id="stStatus"><option>Active</option><option>Inactive</option></select>
+<input class="input" id="stDepartment" placeholder="Department"/>
+</div>
+<input class="input" id="stAddress" placeholder="Address" style="margin-top:8px"/>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<input class="input" id="stAadhaar" placeholder="Aadhaar"/><input class="input" id="stBank" placeholder="Bank Account / UPI"/>
+</div>
+<textarea class="input" id="stNotes" placeholder="Notes — Skills, responsibilities" style="margin-top:8px"></textarea>
+<div id="staffErrorMsg" style="display:none;margin-top:8px;padding:8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#991B1B"></div>
+<button class="btn-primary" onclick="saveStaff()" style="margin-top:12px">Save Staff</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+</div>
+</div></div>
+<!-- === SALARY / CONVEYANCE MODAL === -->
+<div class="modal" id="salaryModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>💰 Salary / Conveyance / Rent / Advance — Professional</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<select class="input" id="salStaff"><option value="">Select Staff *</option></select>
+<select class="input" id="salType" style="margin-top:8px"><option>Salary</option><option>Conveyance</option><option>Advance</option><option>Rent</option><option>Bonus</option><option>Deduction</option><option>Other</option></select>
+<input class="input" id="salAmount" placeholder="Amount ₹ *" style="margin-top:8px" type="number"/>
+<input class="input" id="salDate" style="margin-top:8px" type="date"/>
+<input class="input" id="salMonth" placeholder="Salary Month — e.g., 2024-03" style="margin-top:8px" type="month"/>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<input class="input" id="salAdvance" placeholder="Advance Given ₹" type="number"/><input class="input" id="salDeduction" placeholder="Deduction ₹" type="number"/>
+</div>
+<input class="input" id="salNote" placeholder="Note — e.g., March salary, Conveyance for field visit" style="margin-top:8px"/>
+<div id="salaryErrorMsg" style="display:none;margin-top:8px;padding:8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#991B1B"></div>
+<button class="btn-primary" onclick="saveSalary()" style="margin-top:12px">Save Salary / Conveyance</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+</div>
+</div></div>
+<!-- === TASK ASSIGNMENT MODAL — Service Industry === -->
+<div class="modal" id="taskModal"><div class="modal-box">
+<div style="display:flex;justify-content:space-between;align-items:center"><h3>📋 Assign Service Task to Staff — Daily Monitoring</h3><button class="tab" onclick="closeModals()">Close</button></div>
+<div style="margin-top:12px">
+<input class="input" id="taskTitle" placeholder="Task Title * — e.g., Client site visit, Installation, Service call"/>
+<textarea class="input" id="taskDesc" placeholder="Task Description — Service details, client name, address" style="margin-top:8px"></textarea>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<select class="input" id="taskStaff"><option value="">Assign to Staff *</option></select>
+<select class="input" id="taskPriority"><option>Medium</option><option>High</option><option>Low</option><option>Urgent</option></select>
+<select class="input" id="taskStatus"><option>Pending</option><option>In Progress</option><option>Completed</option></select>
+<input class="input" id="taskDueDate" placeholder="Due Date *" type="date"/>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+<input class="input" id="taskClient" placeholder="Client Name"/><input class="input" id="taskClientContact" placeholder="Client Contact"/>
+<input class="input" id="taskLocation" placeholder="Location / Area"/><input class="input" id="taskEstimatedHours" placeholder="Estimated Hours" type="number"/>
+</div>
+<div id="taskErrorMsg" style="display:none;margin-top:8px;padding:8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#991B1B"></div>
+<button class="btn-primary" onclick="saveTask()" style="margin-top:12px">Assign Task</button>
+<button class="btn-google" onclick="closeModals()" style="margin-top:8px">Cancel</button>
+<div style="margin-top:8px;font-size:11px;color:#6B7280">💡 Professional: Assign service work to staff → Daily monitoring of completion → Staff can update status → Business owner tracks daily</div>
+</div>
+</div></div>
+</body></html>
